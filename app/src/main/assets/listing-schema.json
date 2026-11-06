@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "brand": {"type": "string"},
+          "category": {"type": "string"},
+          "aliases": {"type": "array", "items": {"type": "string"}},
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "properties": {
+                "spec": {"type": "string"},
+                "unit": {"type": "string", "enum": ["piece", "kg", "ft", "metre", "box", "dozen", "packet"]},
+                "sell_price": {"type": ["number", "null"]}
+              },
+              "required": ["spec", "unit", "sell_price"]
+            }
+          }
+        },
+        "required": ["name", "brand", "category", "aliases", "variants"]
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["items", "warnings"]
+}

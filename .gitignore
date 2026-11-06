@@ -1,0 +1,17 @@
+.env*
+!.env.example
+local.properties
+.gradle/
+.kotlin/
+**/build/
+.idea/
+*.iml
+.DS_Store
+captures/
+__pycache__/
+*.pyc
+*.apk
+*.aab
+*.jks
+*.keystore
+keystore.properties
