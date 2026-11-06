@@ -1,3 +1,4 @@
+import {categoryChoices,matchingCategories,inCategory} from './categories.js';
 import { cropImage } from './crop.js';
 import {configureTranslations,setLanguageMode,languageMode,translate,localizeUi,searchQuery,productText} from './i18n.js';
 import {activeReferences, referenceDrafts, referenceView, sourceNote, withReferencePictures, linkedReferenceProduct, linkedPicture, referenceImageUrl, referencePhotoData} from './reference.js';
@@ -75,7 +76,7 @@ function writeData(data) { return new Promise((resolve, reject) => {
   transaction.objectStore('state').put(data, 'catalog'); transaction.oncomplete = resolve;
   transaction.onerror = () => reject(new Error('Could not save in this browser. Export a backup or free some browser storage.'));
 }); }
-const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', query: '', category: '', layout: 'grid', drafts: [], fullEdit: false, listing: '', listingImage: null, warnings: [], rewrites: null, busy: false,
+const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', query: '', category: null, resultLimit: 36, layout: 'grid', drafts: [], fullEdit: false, listing: '', listingImage: null, warnings: [], rewrites: null, busy: false,
   data: null, config: { aiConfigured: false, model: '' } };
 const referenceState = {catalog:null,query:'',category:'',scope:'all',selected:new Set(),limit:20};
 function renderReference() { $('#main').innerHTML=referenceView(referenceState.catalog,state.data.products,referenceState); }
@@ -120,22 +121,24 @@ function renderCatalog() {
   renderResults();
 }
 function results() {
-  const local = search(state.data.products, searchQuery(state.query), state.category);
+  const local = search(state.data.products, searchQuery(state.query)).filter(hit => state.category === null || (hit.product.category || '') === state.category);
   const intent = searchIntent(state.data.products, searchQuery(state.query));
-  const constrained = state.data.products.filter(p => !intent.brands.length || intent.brands.includes(normalize(p.brand)));
-  if (state.rewrites?.query === state.query) return [...local, ...state.rewrites.phrases.flatMap(q => search(constrained, q, state.category))].filter((h, i, list) => list.findIndex(p => p.product.id === h.product.id) === i);
+  const constrained = inCategory(state.data.products, state.category).filter(p => !intent.brands.length || intent.brands.includes(normalize(p.brand)));
+  if (state.rewrites?.query === state.query) return [...local, ...state.rewrites.phrases.flatMap(q => search(constrained, q))].filter((h, i, list) => list.findIndex(p => p.product.id === h.product.id) === i);
   return local;
 }
 function renderResults() {
   const products = state.data.products;
   const samples = products.filter(p => p.demo).length;
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+  const categories = categoryChoices(products);
+  if (state.category !== null && !categories.some(c => c.value === state.category)) state.category = null;
   const hits = results();
   $('#catalog-results').innerHTML = (samples ? `<div class="demo-banner">${icon('help')}<div><strong>A little shelf inspiration.</strong> These ${samples} sample items help you explore. Prices are examples.</div><button class="text-button" data-action="clear-demo">Clear samples ${icon('close')}</button></div>` : '') +
-    `<div class="catalog-toolbar"><div class="category-tabs" role="group" aria-label="Filter categories"><button class="category ${!state.category ? 'selected' : ''}" data-category="">All items <span>${products.length}</span></button>${categories.map(c => `<button class="category ${state.category === c ? 'selected' : ''}" data-category="${esc(c)}">${esc(c)}</button>`).join('')}</div><div class="view-toggle"><button class="icon-button ${state.layout === 'grid' ? 'selected' : ''}" data-layout="grid" aria-label="Grid view" aria-pressed="${state.layout === 'grid'}">${icon('catalog')}</button><button class="icon-button ${state.layout === 'list' ? 'selected' : ''}" data-layout="list" aria-label="List view" aria-pressed="${state.layout === 'list'}">${icon('list')}</button></div></div>
+    `<div class="catalog-toolbar"><div class="category-tabs" role="group" aria-label="Filter categories"><button class="button secondary" data-browse-categories>${icon('catalog')}Browse categories <span>${categories.length}</span></button>${state.category!==null?`<span class="active-category" data-preserve-text>${esc(state.category||translate('Uncategorized'))}</span><button class="text-button" data-all-categories>All items</button>`:'<span class="tiny">Search across all categories</span>'}</div><div class="view-toggle"><button class="icon-button ${state.layout === 'grid' ? 'selected' : ''}" data-layout="grid" aria-label="Grid view" aria-pressed="${state.layout === 'grid'}">${icon('catalog')}</button><button class="icon-button ${state.layout === 'list' ? 'selected' : ''}" data-layout="list" aria-label="List view" aria-pressed="${state.layout === 'list'}">${icon('list')}</button></div></div>
+
     ${searchIntent(products,state.query).brands.length?`<div class="natural-filter"><span>Brand: ${esc(searchIntent(products,state.query).brands.join(', '))}</span><small>Understood from your search · strict brand filter</small></div>`:''}
     <div class="results-caption"><span>${state.query ? `${hits.length} matching ${hits.length === 1 ? 'item' : 'items'}` : `${hits.length} ${hits.length === 1 ? 'item' : 'items'} on your shelves`}</span><span>Tap a price to update it ${icon('edit')}</span></div>
-    <section class="product-grid ${state.layout === 'list' ? 'list-view' : ''}" aria-label="Catalog results">${hits.map(productCard).join('') || `<div class="empty-state">${icon('search')}<h2>${products.length ? 'No matching items yet' : 'Ready for your first item?'}</h2><p>${products.length ? 'Try a different name, spelling or size. Or let smart search help.' : 'Add an item with its sizes and selling prices to make your shelves searchable.'}</p><button class="button primary" data-action="${products.length ? 'smart' : 'new'}">${icon(products.length ? 'spark' : 'plus')}${products.length ? 'Try smart search' : 'Add your first item'}</button></div>`}</section>`;
+    <section class="product-grid ${state.layout === 'list' ? 'list-view' : ''}" aria-label="Catalog results">${hits.slice(0,state.resultLimit).map(productCard).join('') || `<div class="empty-state">${icon('search')}<h2>${products.length ? 'No matching items yet' : 'Ready for your first item?'}</h2><p>${products.length ? 'Try a different name, spelling or size. Or let smart search help.' : 'Add an item with its sizes and selling prices to make your shelves searchable.'}</p>${state.category!==null?'<button class="button secondary" data-all-categories>Search all items</button>':''}<button class="button primary" data-action="${products.length ? 'smart' : 'new'}">${icon(products.length ? 'spark' : 'plus')}${products.length ? 'Try smart search' : 'Add your first item'}</button></div>`}</section>${hits.length>state.resultLimit?`<div class="load-more"><p>${translate('Showing {0} of {1} items').replace('{0}',state.resultLimit).replace('{1}',hits.length)}</p><button class="button secondary" data-more-items>Show more items</button></div>`:''}`;
 }
 function productCard({ product: p, variants }) {
   const theme = kind(p);
@@ -160,6 +163,7 @@ function draftCard(d, i) {
   const found = duplicate(d, state.data.products);
   return `<section class="panel draft-card" data-draft="${i}"><div class="draft-heading"><span class="pill ${d.targetId ? 'update' : ''}">${d.targetId ? 'Update existing' : 'New item'} · ${i + 1}</span><button type="button" class="icon-button" data-remove-draft="${i}" aria-label="Remove item ${i + 1} from review">${icon('close')}</button></div>
     <label>Item name <span>*</span><input name="name" data-field="name" value="${esc(d.name)}" required maxlength="200" placeholder="e.g. Padlock"></label><div class="form-row"><label>Brand<input data-field="brand" value="${esc(d.brand)}" maxlength="100" placeholder="e.g. Godrej"></label><label>Category<input data-field="category" value="${esc(d.category)}" maxlength="100" placeholder="e.g. Locks" list="categories-${i}"></label></div>
+    ${state.data.products.length?`<button type="button" class="text-button" data-entry-category="${i}">Use an existing category</button>`:''}
     <datalist id="categories-${i}">${[...new Set(state.data.products.map(p => p.category))].map(c => `<option value="${esc(c)}">`).join('')}</datalist>
     ${d.targetId ? `<div class="duplicate-note">${icon('history')}Matching sizes will be updated.<button class="text-button" type="button" data-separate="${i}">Save as new instead</button></div>` : found ? `<div class="duplicate-note">${esc(found.name)} already exists.<button type="button" class="text-button" data-merge="${i}" data-target="${esc(found.id)}">Update existing item</button></div>` : ''}
     <button type="button" class="text-button" data-categorize="${i}" ${state.busy||!state.config.aiConfigured?'disabled':''}>${icon('spark')}Suggest category & aliases</button>
@@ -194,6 +198,17 @@ function openDialog(content, onSubmit) {
   $('[data-dialog-close]', dialog)?.addEventListener('click', () => dialog.close());
   $('form', dialog)?.addEventListener('submit', async event => { event.preventDefault(); try { await onSubmit(new FormData(event.target)); } catch (error) { const target = $('.dialog-error', dialog); if (target) target.textContent = error.message; else toast(error.message); } });
 }
+let categoryPicker = null;
+function chooseCategory({choices, selected, onSelect, reference=false, allowAll=true}) {
+  categoryPicker={choices,selected,onSelect,reference,allowAll};
+  openDialog(`<div class="dialog-heading"><h2>${translate(reference?'Choose a product family':'Choose a category')}</h2><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><label>Find a category<input id="category-query" type="search" autocomplete="off"></label><div id="category-choices" class="category-choices"></div>`);
+  renderCategoryChoices('');$('#category-query').focus();
+}
+function renderCategoryChoices(query) {
+  const picker=categoryPicker, choices=matchingCategories(picker.choices,query);
+  $('#category-choices').innerHTML=(picker.allowAll?`<button type="button" class="category-choice" data-pick-all><span>${translate(picker.reference?'All product families':'All items')}</span><small>${picker.choices.reduce((n,c)=>n+c.count,0)}</small></button>`:'')+choices.map(c=>`<button type="button" class="category-choice ${picker.selected===c.value?'selected':''}" data-pick-category="${esc(c.value)}" aria-pressed="${picker.selected===c.value}"><span data-preserve-text>${esc(c.value?(picker.reference?productText(c.value):c.value):translate('Uncategorized'))}</span><small>${c.count} ${translate(picker.reference?'variants':'items')}</small></button>`).join('')+(!choices.length?'<p>No categories match. Try another name.</p>':'');
+}
+function resetCategory() {state.category=null;state.resultLimit=36;renderResults();}
 function confirmDialog(title, text, action, label = 'Confirm') {
   openDialog(`<form><div class="dialog-heading"><h2>${esc(title)}</h2><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><p>${esc(text)}</p><div class="dialog-actions"><button type="button" data-action="close-dialog" class="button secondary">Cancel</button><button class="button primary">${esc(label)}</button></div><p class="dialog-error" role="alert"></p></form>`, async () => { await action(); $('#dialog').close(); shell(); });
 }
@@ -246,7 +261,7 @@ async function saveDrafts() {
       if (existing) data.products[data.products.findIndex(p => p.id === existing.id)] = saved; else data.products.unshift(saved);
     }
   });
-  state.drafts = []; state.listing = ''; state.listingImage = null; state.query = ''; state.category = ''; state.rewrites = null; state.page = 'catalog'; state.fullEdit = false;
+  state.drafts = []; state.listing = ''; state.listingImage = null; state.query = ''; state.category = null; state.rewrites = null; state.page = 'catalog'; state.fullEdit = false;
   referenceState.selected.clear();
   shell(); window.scrollTo(0, 0); toast(`${count} ${count === 1 ? 'item' : 'items'} saved in this browser.`);
 }
@@ -322,7 +337,7 @@ async function restore(file) {
   const backup = validateBackup(JSON.parse(await file.text()));
   confirmDialog('Replace this browser’s catalog?', `Restore ${backup.products.length} items from this web preview backup. Export your current catalog first if you need to keep it. Your Android catalog and local API key will stay unchanged.`, async () => {
     const next = { products: backup.products, history: backup.history, misses: backup.misses, settings: { tax: ['GST not specified', 'incl. GST', 'excl. GST'].includes(backup.settings?.tax) ? backup.settings.tax : 'GST not specified', language: backup.settings?.language === 'en-IN' ? 'en-IN' : 'hi-IN', uiLanguage:['en','hi','hinglish'].includes(backup.settings?.uiLanguage)?backup.settings.uiLanguage:'en' } };
-    await writeData(next); state.data = next; state.query = ''; state.category = ''; state.rewrites = null; state.drafts = []; toast('Web preview backup restored.');
+    await writeData(next); state.data = next; state.query = ''; state.category = null; state.rewrites = null; state.drafts = []; toast('Web preview backup restored.');
   }, 'Restore backup');
 }
 
@@ -341,7 +356,12 @@ document.addEventListener('click', event => {
       state.drafts=drafts;state.fullEdit=false;state.warnings=['You are confirming that you carry these selected variants. Check each specification, selling unit, selling price and shop tax label. Source list rates stay separate. No stock quantity is recorded.'];state.page='add';shell();window.scrollTo(0,0);return;
     }
     if (button.dataset.page) { if (state.busy) return toast('Wait for the current request to finish.'); state.page = button.dataset.page; shell(); window.scrollTo(0, 0); return; }
-    if (button.hasAttribute('data-category')) { state.category = button.dataset.category; renderResults(); return; }
+    if (button.hasAttribute('data-browse-categories')) return chooseCategory({choices:categoryChoices(state.data.products),selected:state.category,onSelect:value=>{state.category=value;state.resultLimit=36;renderResults();}});
+    if (button.hasAttribute('data-reference-family')) return chooseCategory({choices:categoryChoices(referenceState.catalog.products,p=>p.variants.length),selected:referenceState.category||null,reference:true,onSelect:value=>{referenceState.category=value||'';referenceState.limit=20;renderReference();}});
+    if (button.hasAttribute('data-entry-category')) {const i=Number(button.dataset.entryCategory);return chooseCategory({choices:categoryChoices(state.data.products),selected:state.drafts[i].category,allowAll:false,onSelect:value=>{state.drafts[i].category=value;renderAdd();}});}
+    if (button.hasAttribute('data-pick-category')||button.hasAttribute('data-pick-all')) {const value=button.hasAttribute('data-pick-all')?null:button.dataset.pickCategory;categoryPicker.onSelect(value);$('#dialog').close();return;}
+    if (button.hasAttribute('data-all-categories')) return resetCategory();
+    if (button.hasAttribute('data-more-items')) {state.resultLimit+=36;renderResults();return;}
     if (button.dataset.layout) { state.layout = button.dataset.layout; renderResults(); return; }
     if (button.hasAttribute('data-categorize')) return categorize(Number(button.dataset.categorize));
     if (button.hasAttribute('data-recrop')) {const i=Number(button.dataset.recrop);const image=await cropImage(state.drafts[i].photo);if(image){state.drafts[i].photo=image;renderAdd();}return;}
@@ -371,19 +391,20 @@ document.addEventListener('click', event => {
       case 'voice-listing': voice('listing'); break;
       case 'close-dialog': $('#dialog').close(); break;
       case 'export': exportBackup(); break;
-      case 'clear-demo': confirmDialog('Make room for your own items?', 'Remove the sample items and their sample price history. Items you added yourself will stay.', async () => { await changeData(data => { const variantIds = new Set(data.products.filter(p => p.demo).flatMap(p => p.variants.map(v => v.id))); data.products = data.products.filter(p => !p.demo); data.history = data.history.filter(h => !variantIds.has(h.variantId)); }); state.category = ''; toast('Sample items cleared. Your catalog is ready.'); }, 'Clear sample items'); break;
+      case 'clear-demo': confirmDialog('Make room for your own items?', 'Remove the sample items and their sample price history. Items you added yourself will stay.', async () => { await changeData(data => { const variantIds = new Set(data.products.filter(p => p.demo).flatMap(p => p.variants.map(v => v.id))); data.products = data.products.filter(p => !p.demo); data.history = data.history.filter(h => !variantIds.has(h.variantId)); }); state.category = null; toast('Sample items cleared. Your catalog is ready.'); }, 'Clear sample items'); break;
     }
   };
   run().catch(error => toast(error.message));
 });
 document.addEventListener('input', event => {
   const input = event.target;
+  if(input.id==='category-query') {renderCategoryChoices(input.value);return;}
   if(input.id==='reference-query') {
     referenceState.query=input.value;referenceState.limit=20;
     const start=input.selectionStart;renderReference();const replacement=$('#reference-query');replacement.focus();replacement.setSelectionRange(start,start);return;
   }
   if (['quick-price','quick-discount'].includes(input.id)) {updateQuickNet();return;}
-  if (input.id === 'search') { state.query = input.value; state.rewrites = null; renderResults(); return; }
+  if (input.id === 'search') { state.query = input.value; state.rewrites = null; state.resultLimit=36; renderResults(); return; }
   if (input.id === 'listing') { state.listing = input.value; return; }
   const card = input.closest('[data-draft]'); if (!card) return;
   const draft = state.drafts[Number(card.dataset.draft)];

@@ -2,6 +2,25 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-06 · DONE · Made large catalogs easier to browse
+
+`WORK-009` — Android and localhost web now offer searchable category and reference-family pickers with counts, reuse of existing categories during entry, and a clear way to search all items without losing the query.
+
+**Changed**
+
+- Replaced category strips and family dropdowns with bounded searchable pickers. Exact category names remain stored values; blank categories have an explicit Uncategorized option.
+- Removed Android’s ten-result search cutoff. Android renders lazily; web cards load in batches of 36 with all later results reachable. Added English/Hindi/Hinglish labels and matching for familiar family terms.
+
+**Verification**
+
+- Android APK builds; 21 Kotlin unit checks pass, including 1,000 returned matches and response-time check. Lint has zero errors and 16 warnings.
+- New Android flow passed with 46 categories, later-category selection, filter recovery and preserved query. Seventeen emulator tests passed across full and focused runs; the existing crop test timed out once in a full run and passed its isolated rerun.
+- 30 web tests and 9 journal-helper tests passed. Browser QA imported 90 disposable products into a separate localhost:5174 catalog: 45 category counts, final category selection, 36/72/90 visible cards and existing-category reuse all worked. Hindi family search found water tanks; clearing a category preserved tala and found Padlock. The actual localhost:5173 catalog remains six samples.
+
+**Remaining / next**
+
+- Pin frequent categories, add brand/exact-size filters and build a reviewed duplicate-category merge flow. These source/local-build changes are newer than the published v0.4.0 APK; no new release was created.
+
 ## 2026-11-06 · DONE · Published product pictures and Hindi/Hinglish modes
 
 `WORK-008` — Android v0.4.0 and the independent localhost preview show matched source pictures and offer English, Hindi and Hinglish display modes.

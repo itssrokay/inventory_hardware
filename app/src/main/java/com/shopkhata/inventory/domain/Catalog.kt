@@ -123,7 +123,7 @@ object CatalogSearch {
             if (selected.isEmpty()) return@mapNotNull null
             val exact = normalized.any { it == phrase }
             SearchHit(product, selected, scores.average() + (if (exact) 1.0 else 0.0) + if (product.id in ftsIds) .01 else 0.0)
-        }.sortedByDescending { it.score }.take(10)
+        }.sortedByDescending { it.score }
     }
     fun duplicate(draft: ItemDraft, products: List<Product>): Product? = products.firstOrNull {
         normalize(it.brand) == normalize(draft.brand) &&

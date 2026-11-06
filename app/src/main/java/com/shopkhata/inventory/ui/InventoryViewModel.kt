@@ -58,7 +58,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
             val local = repository.search(catalog, uiTranslations.searchQuery(query))
             val brands = searchIntent(catalog, uiTranslations.searchQuery(query)).brands
             val constrained = catalog.filter { brands.isEmpty() || normalize(it.brand) in brands }
-            if (rewrite?.first == query) (local + rewrite.second.flatMap { repository.search(constrained, it) }).distinctBy { it.product.id }.sortedByDescending { it.score }.take(10)
+            if (rewrite?.first == query) (local + rewrite.second.flatMap { repository.search(constrained, it) }).distinctBy { it.product.id }.sortedByDescending { it.score }
             else local
         } }.catch { message("Search failed. Please try again."); emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

@@ -54,7 +54,7 @@ class CatalogSearchTest {
     @Test fun `thousand item search stays responsive`() {
         val thousand = (1..1000).map { screw.copy(id = it.toLong()) }
         val start = System.nanoTime()
-        repeat(5) { assertEquals(10, CatalogSearch.search(thousand, "wodo screw 2 inch").size) }
+        repeat(5) { assertEquals(1000, CatalogSearch.search(thousand, "wodo screw 2 inch").size) }
         assertTrue("Five 1,000-item searches should finish within 5 seconds", (System.nanoTime() - start) / 1_000_000 < 5000)
     }
 }

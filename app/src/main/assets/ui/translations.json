@@ -1481,6 +1481,82 @@
     "No OpenAI key was found on the local server. Add it to the project’s .env.local file; manual entry works now.": {
       "hi": "लोकल सर्वर पर OpenAI कुंजी नहीं मिली। इसे प्रोजेक्ट की .env.local फाइल में जोड़ें; खुद एंट्री करना अभी भी चलता है।",
       "hinglish": "Local server par OpenAI key nahin mili. Ise project ki .env.local file mein jodein; khud entry karna abhi bhi chalta hai."
+    },
+    "Browse categories": {
+      "hi": "श्रेणियाँ देखें",
+      "hinglish": "Categories dekhein"
+    },
+    "Choose a category": {
+      "hi": "श्रेणी चुनें",
+      "hinglish": "Category chunein"
+    },
+    "Choose a product family": {
+      "hi": "उत्पाद का प्रकार चुनें",
+      "hinglish": "Product family chunein"
+    },
+    "Find a category": {
+      "hi": "श्रेणी खोजें",
+      "hinglish": "Category khojein"
+    },
+    "Uncategorized": {
+      "hi": "बिना श्रेणी",
+      "hinglish": "Bina category"
+    },
+    "Searching in": {
+      "hi": "इस श्रेणी में खोज",
+      "hinglish": "Is category mein khoj"
+    },
+    "Search across all categories": {
+      "hi": "सभी श्रेणियों में खोजें",
+      "hinglish": "Sabhi categories mein khojein"
+    },
+    "Search all items": {
+      "hi": "सभी सामान में खोजें",
+      "hinglish": "Sabhi samaan mein khojein"
+    },
+    "Use an existing category": {
+      "hi": "पहले से बनी श्रेणी चुनें",
+      "hinglish": "Pehle se bani category chunein"
+    },
+    "No categories match. Try another name.": {
+      "hi": "कोई श्रेणी नहीं मिली। दूसरा नाम खोजें।",
+      "hinglish": "Koi category nahi mili. Doosra naam khojein."
+    },
+    "Show more items": {
+      "hi": "और सामान दिखाएँ",
+      "hinglish": "Aur samaan dikhayein"
+    },
+    "Showing {0} of {1} items": {
+      "hi": "{1} में से {0} सामान दिख रहे हैं",
+      "hinglish": "{1} mein se {0} samaan dikh rahe hain"
+    },
+    "items": {
+      "hi": "सामान",
+      "hinglish": "samaan"
+    },
+    "variants": {
+      "hi": "साइज़",
+      "hinglish": "sizes"
+    },
+    "{0} matching items": {
+      "hi": "{0} मिलते सामान",
+      "hinglish": "{0} milte samaan"
+    },
+    "{0} matching item": {
+      "hi": "{0} मिलता सामान",
+      "hinglish": "{0} milta samaan"
+    },
+    "No matching items yet": {
+      "hi": "कोई सामान नहीं मिला",
+      "hinglish": "Koi samaan nahi mila"
+    },
+    "Try a different name, spelling or size. Or let smart search help.": {
+      "hi": "दूसरा नाम, वर्तनी या साइज़ खोजें। या स्मार्ट खोज आज़माएँ।",
+      "hinglish": "Doosra naam, spelling ya size khojein. Ya smart search aazmayein."
+    },
+    "Try smart search": {
+      "hi": "स्मार्ट खोज आज़माएँ",
+      "hinglish": "Smart search aazmayein"
     }
   },
   "terms": {

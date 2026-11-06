@@ -16,6 +16,7 @@ const files = new Map([
   ['/domain.js', ['domain.js', 'text/javascript; charset=utf-8']],
   ['/crop.js', ['crop.js', 'text/javascript; charset=utf-8']],
   ['/reference.js', ['reference.js', 'text/javascript; charset=utf-8']],
+  ['/categories.js', ['categories.js', 'text/javascript; charset=utf-8']],
   ['/i18n.js', ['i18n.js', 'text/javascript; charset=utf-8']],
   ['/reference/viewer', ['reference/viewer.html', 'text/html; charset=utf-8']],
   ['/reference/viewer.js', ['reference/viewer.js', 'text/javascript; charset=utf-8']],

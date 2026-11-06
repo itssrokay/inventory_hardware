@@ -161,6 +161,8 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
     val tax by vm.taxLabel.collectAsStateWithLifecycle()
     val category by vm.searchCategory.collectAsStateWithLifecycle()
     var editing by remember { mutableStateOf<Pair<Product, ProductVariant>?>(null) }
+    var choosingCategory by rememberSaveable { mutableStateOf(false) }
+    val categories = remember(products) { products.groupingBy { it.category }.eachCount().toSortedMap().map { CategoryChoice(it.key, it.value) } }
     val displayed = hits
     LaunchedEffect(products, category) {
         if (category != null && products.isNotEmpty() && products.none { it.category == category }) vm.searchCategory.value = null
@@ -185,13 +187,19 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
                 keyboardActions = KeyboardActions(onSearch = { vm.submitSearch() }), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color.White, focusedContainerColor = Color.White))
         }
         if (products.isNotEmpty()) item {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = category == null, onClick = { vm.searchCategory.value = null }, label = { Text(ui("All items")) })
-                products.map { it.category }.filter(String::isNotBlank).distinct().sorted().forEach { name ->
-                    FilterChip(selected = category == name, onClick = { vm.searchCategory.value = if (category == name) null else name }, label = { Text(name) })
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { choosingCategory = true }, modifier = Modifier.weight(1f).testTag("browse-categories")) {
+                        Icon(Icons.Outlined.FilterList, null); Spacer(Modifier.width(6.dp))
+                        Text(ui("Browse categories") + " (${categories.size})")
+                    }
+                    if (category != null) TextButton(onClick = { vm.searchCategory.value = null }) { Text(ui("All items")) }
                 }
+                if (category != null) Text(ui("Searching in") + ": " + if (category!!.isBlank()) ui("Uncategorized") else category!!, color = Green)
+                else Text(ui("Search across all categories"), color = Muted, fontSize = 12.sp)
             }
         }
+
         if (products.isEmpty()) item {
             Panel {
                 EmptyState(Icons.Outlined.Inventory2, "Your shelves, searchable", "Add your first item with its sizes and selling prices. Everything stays on this phone.") {
@@ -210,6 +218,7 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
             }
             if (displayed.isEmpty()) item {
                 EmptyState(Icons.Outlined.SearchOff, "No matching items", "Try another name, Hindi spelling or size.") {
+                    if (category != null) OutlinedButton(onClick = { vm.searchCategory.value = null }) { Text(ui("Search all items")) }
                     if (query.isNotBlank()) OutlinedButton(onClick = vm::submitSearch, enabled = !rewriting) { Text(ui(if (rewriting) "Understanding your search…" else "Try smart search")) }
                     TextButton(onClick = vm::manual) { Text(ui("Add an item")) }
                 }
@@ -218,6 +227,7 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
             items(displayed, key = { it.product.id }) { hit -> ProductCard(hit, tax, reference?.productFor(hit.product.variants.firstOrNull { it.sourceReferenceId!=null }?.sourceReferenceId), { vm.edit(hit.product) }) { editing = hit.product to it } }
         }
     }
+    if (choosingCategory) CategoryPickerDialog(categories, category, { vm.searchCategory.value = it }, { choosingCategory = false })
     editing?.let { (product, variant) -> PriceDialog(vm, product, variant) { editing = null } }
 }
 @Composable
@@ -357,6 +367,7 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
 @Composable
 private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: Product?, change: (ItemDraft) -> Unit, remove: () -> Unit, photo: () -> Unit, recrop: () -> Unit, categorize: () -> Unit, aiConfigured: Boolean, vm: InventoryViewModel) {
     val context = LocalContext.current
+    val catalogProducts by vm.products.collectAsStateWithLifecycle()
     var more by rememberSaveable(index) { mutableStateOf(false) }
     Panel(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -368,6 +379,11 @@ private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: P
             OutlinedTextField(draft.brand, { change(draft.copy(brand = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text(ui("Brand")) }, singleLine = true)
             OutlinedTextField(draft.category, { change(draft.copy(category = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text(ui("Category")) }, singleLine = true)
         }
+        var choosingCategory by remember { mutableStateOf(false) }
+        if (catalogProducts.isNotEmpty()) TextButton(onClick = { choosingCategory = true }, enabled = !busy) { Text(ui("Use an existing category")) }
+        if (choosingCategory) CategoryPickerDialog(
+            catalogProducts.groupingBy { it.category }.eachCount().toSortedMap().map { CategoryChoice(it.key, it.value) },
+            draft.category, { change(draft.copy(category = it.orEmpty())) }, { choosingCategory = false }, allowAll = false)
         TextButton(onClick = categorize, enabled = !busy && aiConfigured && (draft.name.isNotBlank() || draft.photoPath != null)) {
             Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(ui("Suggest category & aliases"))
         }

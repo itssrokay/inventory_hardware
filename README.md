@@ -130,3 +130,11 @@ build/reference-import-env/bin/python scripts/extract_reference_images.py app/sr
 ```
 
 The 0.4.0 build passed **21 Kotlin unit tests, 16 Android emulator tests, 27 web tests and 9 journal-helper checks**. Android lint reports zero errors (16 warnings). Emulator and browser checks covered language persistence, Hindi product search, reviewed source-photo transfer, custom-photo priority, unchanged canonical units and photo/language backup round trips. The original localhost catalog remains at six samples with no activated reference variants. No live OpenAI call was used for these changes.
+
+## Category navigation · source update after 0.4.0
+
+Android and the local web preview now use a searchable category picker with counts instead of a growing horizontal list. The same picker finds reference product families and reuses existing categories during item entry. An explicit Uncategorized group includes items with no saved category. Selected filters stay visible; **Search all items** removes the category filter while keeping the query.
+
+Android search now returns every matching product, using a lazy list to render visible cards. The web renders 36 cards at a time with **Show more items**, so later matches remain reachable without creating thousands of cards at once. Category names, prices and stock status are unchanged. These source changes are newer than the published v0.4.0 APK.
+
+Next usability priorities: pin frequently used categories for a one-tap counter shortcut; add brand and exact-size filters for large plumbing families; provide a reviewed category-merge tool for duplicate names. Category merging must show the affected items before saving, since it changes stored catalog data.

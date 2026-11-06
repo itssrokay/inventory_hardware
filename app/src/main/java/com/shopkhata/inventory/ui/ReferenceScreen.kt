@@ -35,14 +35,15 @@ fun ReferenceScreen(vm: InventoryViewModel) {
     val selected by vm.referenceSelected.collectAsStateWithLifecycle()
     val translations=LocalUiTranslations.current
     var query by rememberSaveable { mutableStateOf("") }
-    var category by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf<String?>(null) }
+    var choosingCategory by rememberSaveable { mutableStateOf(false) }
     var limit by rememberSaveable(query, category) { mutableIntStateOf(20) }
     var page by remember { mutableStateOf<Int?>(null) }
     val active = remember(shop) { shop.flatMap { it.variants }.mapNotNull { it.sourceReferenceId }.toSet() }
     val groups = remember(catalog,query,category) {
         val terms = normalize(query).split(' ').filter { it.isNotEmpty() }
         val code = query.trim().takeIf { Regex("(?:SIM|IM|IT|IP)\\d{5,8}",RegexOption.IGNORE_CASE).matches(it) }
-        catalog?.products.orEmpty().filter { category.isBlank() || it.category == category }.mapNotNull { group ->
+        catalog?.products.orEmpty().filter { category == null || it.category == category }.mapNotNull { group ->
             val names=translations.searchText("Prince ${group.name} ${group.category}")
             val variants = group.variants.filter { v -> if(code!=null) v.code?.equals(code,ignoreCase=true)==true else terms.all { it in normalize("$names ${v.label} ${v.code} ${v.rawRow}") } }
             if (variants.isEmpty()) null else group.copy(variants = variants)
@@ -59,13 +60,10 @@ fun ReferenceScreen(vm: InventoryViewModel) {
             }
             item { OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().testTag("reference-search"),label={Text(ui("Search reference · name, size or code"))},singleLine=true) }
             item {
-                var open by remember { mutableStateOf(false) }
-                OutlinedButton(onClick={open=true}) { Text(category.ifBlank { "All product families" }) }
-                DropdownMenu(expanded=open,onDismissRequest={open=false}) {
-                    (listOf("")+catalog?.products.orEmpty().map { it.category }.distinct()).forEach { c ->
-                        DropdownMenuItem(text={Text(if(c.isBlank())ui("All product families")else productLabel(c))},onClick={category=c;open=false})
-                    }
+                OutlinedButton(onClick={choosingCategory=true},modifier=Modifier.testTag("reference-families")) {
+                    Text(if(category==null)ui("All product families")else productLabel(category!!))
                 }
+                if(category!=null) TextButton(onClick={category=null}) { Text(ui("All product families")) }
                 Text(ui("${groups.size} groups · ${groups.sumOf { it.variants.size }} variants · ${active.size} linked shop variants"),style=MaterialTheme.typography.bodySmall)
             }
             if (error != null) item { Text(ui(error!!),color=MaterialTheme.colorScheme.error) }
@@ -111,6 +109,9 @@ fun ReferenceScreen(vm: InventoryViewModel) {
             }
         } }
     }
+    if(choosingCategory) CategoryPickerDialog(
+        catalog?.products.orEmpty().groupBy { it.category }.toSortedMap().map { (name, groups) -> CategoryChoice(name, groups.sumOf { it.variants.size }) },
+        category, {category=it}, {choosingCategory=false}, reference=true)
     page?.let { PdfSourceDialog(it) { page=null } }
 }
 
