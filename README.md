@@ -2,7 +2,7 @@
 
 # Dukaan — hardware shop catalog
 
-Current local development build: **0.3.0**. Published GitHub test release: **0.1.0**.
+Current version: **0.3.0**. The first link above downloads the latest published Android test build.
 
 Native Android app built from `plan.md`. It keeps the catalog on one phone and puts selling prices first. No server or account is required for local features.
 
@@ -109,10 +109,10 @@ The local 0.2.0 APK builds, all 17 Kotlin unit tests and 11 Android emulator tes
 
 All 17 web tests pass. In an isolated browser catalog, a synthetic Prince PVC socket label was uploaded, cropped and read by live OpenAI: brand Prince, size 20 mm, selling price ₹100 and category Plumbing. The category suggestion button was also checked live. Entering 25% off previewed and saved ₹75; natural brand/product filters found it, and the quick discount editor saved a changed net price with history. The localhost user catalog was not used for these fixture writes. These checks do not replace real-shop photo and voice validation.
 
-## Reference library · local 0.3.0
+## Reference library · 0.3.0
 
 The supplied Prince PDF is imported into a separate library: **702 groups and 4,105 reference variants**, all stock unconfirmed and hidden from the main catalog. Select only carried variants, then confirm blank selling-price and unit fields before saving. Source list rates/dates, pack details and page references remain separate; no stock quantity is invented. Repeated activation is prevented by stable reference IDs retained in backups.
 
-Open **Reference** in Android or **Reference library** in the web preview. The [reference guide](docs/REFERENCE-CATALOG.md) explains source anomalies, the extraction audit and how to rebuild local PDF/source-page assets. The public APK link above still points to v0.1.0; this work is local.
+Open **Reference** in Android or **Reference library** in the web preview. The [reference guide](docs/REFERENCE-CATALOG.md) explains source anomalies, the extraction audit and how to rebuild local PDF/source-page assets. The public APK link above now downloads v0.3.0. The web preview runs locally from the published source.
 
-The 0.3.0 local build passed **19 Kotlin unit tests, 14 Android emulator tests, 23 web tests and 9 journal-helper checks**. Android lint has zero errors (16 warnings). Migration was exercised against the exported version 1 schema; reference activation, source links and backup restoration were checked in the emulator. Browser checks covered source-page viewing, blank price/unit review, one confirmed variant, persistence and prevention of repeated activation. The localhost catalog stayed at its original six sample items, with no activated reference variants. A repeated PDF import produced byte-identical JSON. No OpenAI request was needed for this import.
+The 0.3.0 build passed **19 Kotlin unit tests, 14 Android emulator tests, 23 web tests and 9 journal-helper checks**. Android lint has zero errors (16 warnings). Migration was exercised against the exported version 1 schema; reference activation, source links and backup restoration were checked in the emulator. Browser checks covered source-page viewing, blank price/unit review, one confirmed variant, persistence and prevention of repeated activation. The localhost catalog stayed at its original six sample items, with no activated reference variants. A repeated PDF import produced byte-identical JSON. No OpenAI request was needed for this import.

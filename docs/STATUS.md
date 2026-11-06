@@ -2,15 +2,15 @@
 
 Updated: 2026-11-06
 
-The Android app has a public test APK. A separate localhost web preview is available for quick UI and workflow checks. The next gate is real use on the shop owner’s Android phone.
+Android 0.3.0 is published on GitHub with a direct APK download and checksum. The source includes an independent localhost web preview and project cockpit. The next gate is choosing actual carried variants and real use on the shop owner’s phone.
 
 | Track | State | What works |
 | --- | --- | --- |
-| Android app | Local 0.3.0 test build | Offline catalog plus a separate Prince reference library. Select carried variants, review blank selling prices and units, and retain source links through migration and backups. Existing image, search, price/history and backup flows remain. |
-| Local web preview | Local only | Independent browser catalog with a separate searchable reference library, source-page viewer and reviewed activation. Source list rates never become selling prices automatically. |
-| Release | v0.1.0 public | Public release remains v0.1.0. Android 0.3.0, the local web preview and reference-library changes have not been published. |
+| Android app | 0.3.0 published test build | Offline catalog plus a separate Prince reference library. Select carried variants, review blank selling prices and units, and retain source links through migration and backups. Existing image, search, price/history and backup flows remain. |
+| Local web preview | Source published · runs locally | Independent browser catalog with a separate searchable reference library, source-page viewer and reviewed activation. Source list rates never become selling prices automatically. |
+| Release | v0.3.0 public | The public GitHub release contains the 0.3.0 debug APK and SHA-256 file; the README’s first link downloads it. Updated Android, localhost preview and project workflow source is on main. |
 | Shop validation | Not yet verified | Daily counter use, actual catalog quality, phone speech service and real-device performance still need a trial. |
-| Project memory | Shared locally | One workflow for Codex/Claude, append-only outcomes and ADRs, generated Markdown and the read-only project cockpit. Claude runtime is not installed here. |
+| Project memory | Shared in the repository | One workflow for Codex/Claude, append-only outcomes and ADRs, generated Markdown and the read-only project cockpit. Source is published; a real Claude Code session remains untested. |
 
 ## Next priorities
 

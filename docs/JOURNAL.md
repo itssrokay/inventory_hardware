@@ -2,6 +2,25 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-06 · DONE · Published Dukaan 0.3.0 with a verified direct APK download
+
+`WORK-007` — The latest Android test build and project source are now public on GitHub. The README’s first link downloads 0.3.0.
+
+**Changed**
+
+- Pushed the reference catalog, reviewed activation, image entry, natural filters, discount calculators, localhost preview and shared project workflow in source commit d817fa9.
+- Published v0.3.0 with Dukaan-debug.apk and its portable SHA-256 checksum, then marked it latest. Updated the current release snapshot and README. No API key is bundled; the APK includes the original manufacturer PDF for its offline reference viewer.
+
+**Verification**
+
+- Anonymous download through the exact README URL returned HTTP 200 and redirected to v0.3.0. All 33,941,795 downloaded bytes matched the verified APK SHA-256; the downloaded checksum file matched too.
+- Source and APK credential scans found no local key. APK signing certificate matches 0.1.0 for in-place updates. Gradle build/unit/lint commands succeeded with unchanged tasks cached; 23 web tests and 9 journal-helper tests passed before publication.
+- The existing 19 Kotlin unit-test and 14 emulator-test results cover the released app inputs; emulator tests were not rerun solely for publication.
+
+**Remaining / next**
+
+- Real-phone counter validation, owner selection of carried variants, direct camera capture and weekly backup reminders remain. The browser preview runs locally; publishing source does not create a hosted web app.
+
 ## 2026-11-06 · DONE · Imported an unconfirmed reference library with reviewed activation
 
 `WORK-006` — Android 0.3.0 and the local web preview now browse 702 Prince product groups and 4,105 reference variants separately from the shop catalog. Nothing is assumed stocked or automatically priced.
