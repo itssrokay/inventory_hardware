@@ -13,12 +13,14 @@ data class ReferenceVariant(
             .filter { it.isNotBlank() }.joinToString(" · ")
     }
 }
-data class ReferenceProduct(val id: String, val name: String, val category: String, val page: Int, val variants: List<ReferenceVariant>, val priceListLabel: String = "") {
+data class ReferenceProduct(val id: String, val name: String, val category: String, val page: Int, val variants: List<ReferenceVariant>, val priceListLabel: String = "", val imageAsset: String? = null) {
     val shopName get() = "${category.substringBefore(" · ")} $name"
 }
 data class ReferenceCatalog(val sourceId: String, val effectiveDate: String, val filenameDate: String, val taxBasis: String,
     val products: List<ReferenceProduct>, val unresolved: Int) {
     val variants by lazy { products.flatMap { it.variants }.associateBy { it.id } }
+    fun productFor(referenceId: String?) = if(referenceId==null)null else products.firstOrNull { p -> p.variants.any { it.id == referenceId } }
+    fun imageFor(referenceId: String?) = productFor(referenceId)?.imageAsset
 }
 
 fun referenceDrafts(catalog: ReferenceCatalog, selected: Set<String>, shop: List<Product>): List<ItemDraft> {

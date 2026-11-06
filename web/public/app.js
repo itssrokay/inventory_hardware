@@ -1,5 +1,6 @@
 import { cropImage } from './crop.js';
-import {activeReferences, referenceDrafts, referenceView, sourceNote} from './reference.js';
+import {configureTranslations,setLanguageMode,languageMode,translate,localizeUi,searchQuery,productText} from './i18n.js';
+import {activeReferences, referenceDrafts, referenceView, sourceNote, withReferencePictures, linkedReferenceProduct, linkedPicture, referenceImageUrl, referencePhotoData} from './reference.js';
 import { UNITS, currency, decimal, normalize, search, duplicate, validateDraft, validateBackup, paise, discountedPaise, searchIntent } from './domain.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -29,7 +30,8 @@ function kind(product) {
   return /lock|tala/.test(name) ? 'lock' : /screw|fastener/.test(name) ? 'screw' : /valve|plumb/.test(name) ? 'valve' : /plier/.test(name) ? 'pliers' : /adhes|fevicol/.test(name) ? 'glue' : 'tape';
 }
 function illustration(product) {
-  if (product.photo) return `<img class="product-photo" src="${esc(product.photo)}" alt="${esc(product.name)}">`;
+  const picture=product.photo||referenceImageUrl(linkedPicture(referenceState.catalog,product));
+  if (picture) return `<img class="product-photo" src="${esc(picture)}" alt="${esc(product.name)}">`;
   const type = kind(product);
   const art = {
     lock: '<path d="M28 38V28a14 14 0 0128 0v10" fill="none" stroke="#a8a693" stroke-width="8"/><rect x="20" y="35" width="44" height="34" rx="7" fill="#b69c60"/><rect x="24" y="39" width="36" height="26" rx="5" fill="#c6ad73"/><circle cx="42" cy="49" r="4" fill="#605539"/><path d="M40 50h4v9h-4z" fill="#605539"/>',
@@ -77,14 +79,19 @@ const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', 
   data: null, config: { aiConfigured: false, model: '' } };
 const referenceState = {catalog:null,query:'',category:'',scope:'all',selected:new Set(),limit:20};
 function renderReference() { $('#main').innerHTML=referenceView(referenceState.catalog,state.data.products,referenceState); }
+function languageSelector() {
+  return `<label class="language-control"><span>App language</span><select class="language-switch" data-ui-language aria-label="App language">${[['en','English'],['hi','हिन्दी'],['hinglish','Hinglish']].map(([value,label])=>`<option value="${value}" ${value===(state.data.settings.uiLanguage||'en')?'selected':''}>${label}</option>`).join('')}</select></label>`;
+}
 let toastTimer;
-function toast(text) { $('#toast').textContent = text; $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
+function toast(text) { $('#toast').textContent = translate(text); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
 async function changeData(change) { const next = structuredClone(state.data); change(next); await writeData(next); state.data = next; }
 async function api(path, body) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Request failed.'); return data;
 }
 function shell() {
+  setLanguageMode(state.data.settings.uiLanguage||'en');
+  try {localStorage.setItem('dukaan-ui-language',languageMode());}catch {}
   const count = state.data.products.length;
   $('#app').innerHTML = `<aside class="sidebar">
     <a class="brand" href="#catalog" aria-label="Dukaan catalog"><span class="brand-mark">${icon('shop')}</span><span>dukaan<span class="brand-dot">.</span></span></a>
@@ -94,12 +101,13 @@ function shell() {
     <div class="sidebar-note"><span class="note-icon">${icon('shield')}</span><strong>Your shop. Your data.</strong><p>This preview saves your catalog in this browser.</p><span class="local-label"><i></i> Running on localhost</span></div>
     <div class="sidebar-bottom"><button class="nav-item ${state.page === 'settings' ? 'active' : ''}" data-page="settings">${icon('settings')}<span>Settings & backup</span></button>
       <a class="android-link" href="https://github.com/itssrokay/inventory_hardware/releases/latest/download/Dukaan-debug.apk" target="_blank" rel="noopener">${icon('download')}<span>Get the Android app</span>${icon('arrow')}</a>
-      <div class="profile"><span class="avatar">D</span><div><strong>My hardware shop</strong><small>Local web preview</small></div><span class="version">v0.3</span></div></div>
-    </aside><div class="mobile-bar"><a class="brand" href="#catalog"><span class="brand-mark">${icon('shop')}</span>dukaan.</a><span class="preview-tag">LOCAL PREVIEW</span></div>
-    <div class="workspace"><div class="topbar"><span>${icon('shop')} My hardware shop <span class="breadcrumb">/</span> ${esc({ catalog: 'Catalog', reference: 'Reference library', add: 'Add items', history: 'Price history', misses: 'Missed searches', settings: 'Settings' }[state.page])}</span><span class="preview-tag">LOCAL PREVIEW</span></div>
+      <div class="profile"><span class="avatar">D</span><div><strong>My hardware shop</strong><small>Local web preview</small></div><span class="version">v0.4</span></div></div>
+    </aside><div class="mobile-bar"><a class="brand" href="#catalog"><span class="brand-mark">${icon('shop')}</span>dukaan.</a>${languageSelector()}</div>
+    <div class="workspace"><div class="topbar"><span>${icon('shop')} My hardware shop <span class="breadcrumb">/</span> ${esc({ catalog: 'Catalog', reference: 'Reference library', add: 'Add items', history: 'Price history', misses: 'Missed searches', settings: 'Settings' }[state.page])}</span>${languageSelector()}</div>
     <main id="main" tabindex="-1"></main><footer class="page-footer"><span>Made for the way you run your shop.</span><span>हिन्दी, English & Hinglish</span></footer></div>
     <nav class="mobile-nav" aria-label="Mobile navigation">${[['catalog', 'catalog', 'Catalog'], ['add', 'plus', 'Add'], ['reference', 'catalog', 'Reference'], ['history', 'history', 'History'], ['settings', 'settings', 'Settings']].map(([p, i, label]) => `<button data-page="${p}" class="${state.page === p ? 'active' : ''}">${icon(i)}${label}</button>`).join('')}</nav>`;
   ({ catalog: renderCatalog, reference: renderReference, add: renderAdd, history: renderHistory, misses: renderMisses, settings: renderSettings })[state.page]();
+  localizeUi(document);
 }
 function pageHeader(kicker, title, subtitle, action = '') {
   return `<header class="page-header"><div><p class="eyebrow">${kicker}</p><h1>${title}</h1><p class="subtitle">${subtitle}</p></div>${action}</header>`;
@@ -112,8 +120,8 @@ function renderCatalog() {
   renderResults();
 }
 function results() {
-  const local = search(state.data.products, state.query, state.category);
-  const intent = searchIntent(state.data.products, state.query);
+  const local = search(state.data.products, searchQuery(state.query), state.category);
+  const intent = searchIntent(state.data.products, searchQuery(state.query));
   const constrained = state.data.products.filter(p => !intent.brands.length || intent.brands.includes(normalize(p.brand)));
   if (state.rewrites?.query === state.query) return [...local, ...state.rewrites.phrases.flatMap(q => search(constrained, q, state.category))].filter((h, i, list) => list.findIndex(p => p.product.id === h.product.id) === i);
   return local;
@@ -131,8 +139,11 @@ function renderResults() {
 }
 function productCard({ product: p, variants }) {
   const theme = kind(p);
-  return `<article class="product-card" data-product="${esc(p.id)}"><div class="product-top"><div class="product-thumb ${theme}">${illustration(p)}</div><div class="product-title"><span class="category-label">${esc(p.category || 'General')}</span><h2>${esc(p.name)}</h2><p>${esc(p.brand || 'Unbranded')}${p.demo ? ' <span class="sample-label">SAMPLE</span>' : ''}</p></div><button class="icon-button edit-item" data-edit="${esc(p.id)}" aria-label="Edit ${esc(p.name)}">${icon('edit')}</button></div>
-    <div class="variant-list">${variants.map(v => `<button class="price-row" data-price="${esc(v.id)}" data-item="${esc(p.id)}" aria-label="Update ${esc(p.name)} ${esc(v.spec)} price"><span class="variant-spec">${esc(v.spec || 'Standard')}<span>per ${esc(v.unit)}</span><small class="price-date">Updated ${date(v.updatedAt)}${v.sourceReferenceId?' · Confirmed shop price · reference linked':''}</small></span><strong>${currency(v.pricePaise)}</strong>${icon('edit')}</button>`).join('')}</div>
+  const source=linkedReferenceProduct(referenceState.catalog,p);
+  const originalName=source?`${source.category.split(' · ')[0]} ${source.name}`:null;
+  const displayName=p.name===originalName?productText(p.name):p.name;
+  return `<article class="product-card" data-product="${esc(p.id)}"><div class="product-top"><div class="product-thumb ${theme}">${illustration(p)}</div><div class="product-title"><span class="category-label">${esc(p.category || 'General')}</span><h2 data-preserve-text>${esc(displayName)}</h2>${displayName!==p.name?`<small data-preserve-text>${esc(p.name)}</small>`:''}<p>${esc(p.brand || 'Unbranded')}${p.demo ? ' <span class="sample-label">SAMPLE</span>' : ''}</p></div><button class="icon-button edit-item" data-edit="${esc(p.id)}" aria-label="Edit ${esc(p.name)}">${icon('edit')}</button></div>
+    <div class="variant-list">${variants.map(v => `<button class="price-row" data-price="${esc(v.id)}" data-item="${esc(p.id)}" aria-label="Update ${esc(p.name)} ${esc(v.spec)} price"><span class="variant-spec">${esc(v.spec || 'Standard')}<span>${esc(translate("per"))} ${esc(translate(v.unit))}</span><small class="price-date">${esc(translate(`Updated ${date(v.updatedAt)}${v.sourceReferenceId?' · Confirmed shop price · reference linked':''}`))}</small></span><strong>${currency(v.pricePaise)}</strong>${icon('edit')}</button>`).join('')}</div>
     <div class="product-meta"><span>${p.zone ? `${icon('shop')}${esc(p.zone)}` : esc(state.data.settings.tax)}</span><span>${p.demo ? 'Sample · ' : ''}Price updated ${date(Math.max(...p.variants.map(v=>v.updatedAt)))}</span></div></article>`;
 }
 function emptyDraft() { return { name: '', brand: '', category: '', aliases: '', zone: '', locationNote: '', photo: null, targetId: null, variants: [{ spec: '', unit: 'piece', price: '', discount: '' }] }; }
@@ -162,17 +173,17 @@ function renderHistory() {
   $('#main').innerHTML = pageHeader('A LITTLE CONTEXT FOR EVERY PRICE', 'Keep up with changing rates.', 'Every saved price change leaves a clear trail.') +
     (rows.length ? `<section class="panel table-panel"><table><thead><tr><th>Item & size</th><th>Previous price</th><th>New price</th><th>Changed</th></tr></thead><tbody>${rows.map(h => {
       const p = state.data.products.find(p => p.variants.some(v => v.id === h.variantId)); const v = p?.variants.find(v => v.id === h.variantId);
-      return `<tr><td><strong>${esc(p?.name || 'Removed item')}</strong><small>${esc(v?.spec || 'Standard')}</small></td><td>${currency(h.oldPrice)}</td><td class="new-price">${currency(h.newPrice)}</td><td>${date(h.changedAt)}</td></tr>`;
+      return `<tr><td><strong data-preserve-text>${esc(p?.name || 'Removed item')}</strong><small>${esc(v?.spec || 'Standard')}</small></td><td>${currency(h.oldPrice)}</td><td class="new-price">${currency(h.newPrice)}</td><td>${date(h.changedAt)}</td></tr>`;
     }).join('')}</tbody></table></section>` : `<div class="empty-state panel">${icon('history')}<h2>No price changes yet</h2><p>Tap a price in your catalog to update it. The old and new prices will appear here.</p><button class="button secondary" data-page="catalog">Back to catalog ${icon('arrow')}</button></div>`);
 }
 function renderMisses() {
   const misses = state.data.misses.filter(m => !m.resolvedItemId).slice().reverse();
   $('#main').innerHTML = pageHeader('A CATALOG THAT LEARNS YOUR WORDS', 'Every name has a place.', 'Connect an unsuccessful search to the right item. Next time, it will work offline.') +
-    (misses.length ? `<div class="miss-grid">${misses.map(m => `<section class="panel"><span class="category-label">${date(m.searchedAt)}</span><h2>“${esc(m.query)}”</h2><p class="quiet-copy">Which item was your customer looking for?</p><label class="sr-only" for="miss-${esc(m.id)}">Choose item for ${esc(m.query)}</label><select id="miss-${esc(m.id)}" data-miss-select="${esc(m.id)}"><option value="">Choose an item…</option>${state.data.products.map(p => `<option value="${esc(p.id)}">${esc(p.name)}${p.brand ? ' · ' + esc(p.brand) : ''}</option>`).join('')}</select><button class="button secondary" data-learn="${esc(m.id)}">${icon('plus')}Save as another name</button></section>`).join('')}</div>` : `<div class="empty-state panel">${icon('check')}<h2>You’re all caught up.</h2><p>Searches submitted with no local match appear here. A new alias is all it takes to help your catalog learn.</p><button class="button secondary" data-page="catalog">Back to catalog ${icon('arrow')}</button></div>`);
+    (misses.length ? `<div class="miss-grid">${misses.map(m => `<section class="panel"><span class="category-label">${date(m.searchedAt)}</span><h2 data-preserve-text>“${esc(m.query)}”</h2><p class="quiet-copy">Which item was your customer looking for?</p><label class="sr-only" for="miss-${esc(m.id)}">Choose item for ${esc(m.query)}</label><select id="miss-${esc(m.id)}" data-miss-select="${esc(m.id)}"><option value="">Choose an item…</option>${state.data.products.map(p => `<option data-preserve-text value="${esc(p.id)}">${esc(p.name)}${p.brand ? ' · ' + esc(p.brand) : ''}</option>`).join('')}</select><button class="button secondary" data-learn="${esc(m.id)}">${icon('plus')}Save as another name</button></section>`).join('')}</div>` : `<div class="empty-state panel">${icon('check')}<h2>You’re all caught up.</h2><p>Searches submitted with no local match appear here. A new alias is all it takes to help your catalog learn.</p><button class="button secondary" data-page="catalog">Back to catalog ${icon('arrow')}</button></div>`);
 }
 function renderSettings() {
   $('#main').innerHTML = pageHeader('MADE FOR YOUR COUNTER', 'A few things, just your way.', 'Set your price labels, keep a backup and make this preview your own.') +
-    `<div class="settings-grid"><section class="panel"><div class="section-heading"><span class="accent-icon">${icon('key')}</span><h2>OpenAI connection</h2></div><span class="connection ${state.config.aiConfigured ? 'ready' : ''}"><i></i>${state.config.aiConfigured ? 'Your local key is ready' : 'No local key found'}</span><p>Uses the key in your project’s <code>.env.local</code> file. The key stays on the localhost server and is never sent to your browser.</p><div class="settings-fact"><span>Model</span><strong>${esc(state.config.model || 'gpt-4.1-mini')}</strong></div><div class="settings-fact"><span>What is sent</span><strong>Submitted text, images & category names</strong></div><p class="tiny">Natural entry needs an internet connection. Catalog search and manual editing stay local.</p></section>
+    `<div class="settings-grid"><section class="panel"><h2>App language</h2>${languageSelector()}<p>Display language only; your saved names and original source stay unchanged.</p></section><section class="panel"><div class="section-heading"><span class="accent-icon">${icon('key')}</span><h2>OpenAI connection</h2></div><span class="connection ${state.config.aiConfigured ? 'ready' : ''}"><i></i>${state.config.aiConfigured ? 'Your local key is ready' : 'No local key found'}</span><p>Uses the key in your project’s <code>.env.local</code> file. The key stays on the localhost server and is never sent to your browser.</p><div class="settings-fact"><span>Model</span><strong>${esc(state.config.model || 'gpt-4.1-mini')}</strong></div><div class="settings-fact"><span>What is sent</span><strong>Submitted text, images & category names</strong></div><p class="tiny">Natural entry needs an internet connection. Catalog search and manual editing stay local.</p></section>
     <section class="panel"><div class="section-heading"><span class="accent-icon">${icon('settings')}</span><h2>At your counter</h2></div><label>Price convention<select id="tax">${['GST not specified', 'incl. GST', 'excl. GST'].map(t => `<option ${t === state.data.settings.tax ? 'selected' : ''}>${t}</option>`).join('')}</select></label><p class="tiny">Labels your prices. It does not calculate or add tax.</p><label>Voice language<select id="voice-language"><option value="hi-IN" ${state.data.settings.language === 'hi-IN' ? 'selected' : ''}>हिन्दी / Hinglish</option><option value="en-IN" ${state.data.settings.language === 'en-IN' ? 'selected' : ''}>English (India)</option></select></label><p class="tiny">Voice support depends on your browser’s speech service.</p></section>
     <section class="panel"><div class="section-heading"><span class="accent-icon">${icon('shield')}</span><h2>Keep a copy safe</h2></div><p>This web preview is stored in this browser, separately from the Android app. Export a backup before clearing browser data.</p><button class="button primary" data-action="export">${icon('download')}Export preview backup</button><label class="button secondary photo-label">${icon('history')}Restore preview backup<input class="sr-only" id="restore-backup" type="file" accept="application/json,.json"></label><p class="tiny">JSON format for this web preview. Android uses its own ZIP backups. API keys are never exported.</p></section>
     <section class="panel"><div class="section-heading"><span class="accent-icon">${icon('shop')}</span><h2>A fresh shelf</h2></div><p>Sample items make it easy to look around. Clear them to start your own catalog. Any items you add yourself will stay.</p><button class="button secondary" data-action="clear-demo">Clear sample items</button><p class="tiny">${state.data.products.filter(p => p.demo).length} sample items · ${state.data.products.filter(p => !p.demo).length} items added by you</p></section></div>`;
@@ -189,7 +200,7 @@ function confirmDialog(title, text, action, label = 'Confirm') {
 function priceDialog(itemId, variantId) {
   const product = state.data.products.find(p => p.id === itemId); const variant = product?.variants.find(v => v.id === variantId); if (!variant) return;
   const history = state.data.history.filter(h => h.variantId === variantId).slice().reverse();
-  openDialog(`<form><div class="dialog-heading"><div><p class="eyebrow">QUICK PRICE UPDATE</p><h2>${esc(product.name)}</h2></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><p>${esc(variant.spec || 'Standard')} · per ${esc(variant.unit)}</p><label>Selling price (₹)<input id="quick-price" name="price" type="number" min="0" max="100000000" step="0.01" inputmode="decimal" required value="${decimal(variant.pricePaise)}"></label><label>Discount (%) — optional<input id="quick-discount" name="discount" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="e.g. 25"></label><output id="quick-net" class="net-price"></output><p class="tiny">Price last updated ${date(variant.updatedAt)}. Discount applies once to the entered price. Your previous selling price stays in history.</p>${history.length ? `<details><summary>Price history ${icon('chevron')}</summary><div class="mini-history">${history.map(h => `<p>${currency(h.oldPrice)} → <strong>${currency(h.newPrice)}</strong><small>${date(h.changedAt)}</small></p>`).join('')}</div></details>` : ''}<p class="dialog-error" role="alert"></p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">Cancel</button><button class="button primary">${icon('check')}Save price</button></div></form>`, async form => {
+  openDialog(`<form><div class="dialog-heading"><div><p class="eyebrow">QUICK PRICE UPDATE</p><h2 data-preserve-text>${esc(product.name)}</h2></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><p>${esc(variant.spec || 'Standard')} · per ${esc(variant.unit)}</p><label>Selling price (₹)<input id="quick-price" name="price" type="number" min="0" max="100000000" step="0.01" inputmode="decimal" required value="${decimal(variant.pricePaise)}"></label><label>Discount (%) — optional<input id="quick-discount" name="discount" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="e.g. 25"></label><output id="quick-net" class="net-price"></output><p class="tiny">Price last updated ${date(variant.updatedAt)}. Discount applies once to the entered price. Your previous selling price stays in history.</p>${history.length ? `<details><summary>Price history ${icon('chevron')}</summary><div class="mini-history">${history.map(h => `<p>${currency(h.oldPrice)} → <strong>${currency(h.newPrice)}</strong><small>${date(h.changedAt)}</small></p>`).join('')}</div></details>` : ''}<p class="dialog-error" role="alert"></p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">Cancel</button><button class="button primary">${icon('check')}Save price</button></div></form>`, async form => {
     const amount = discountedPaise(form.get('price'),form.get('discount')); if (amount === null) throw new Error('Enter a valid price and a discount from 0 to 100%.');
     await changeData(data => { const p = data.products.find(p => p.id === itemId); const v = p.variants.find(v => v.id === variantId);
       if (v.pricePaise !== amount) { data.history.push({ variantId, oldPrice: v.pricePaise, newPrice: amount, changedAt: Date.now() }); v.pricePaise = amount; v.updatedAt = p.updatedAt = Date.now(); } });
@@ -203,9 +214,10 @@ function updateQuickNet() {
   const value=discountedPaise($('#quick-price').value,$('#quick-discount').value);
   output.textContent=value===null?'Enter a valid price and discount':`Selling price to save: ${currency(value)}`;
 }
-function beginEdit(id) {
+async function beginEdit(id) {
   const p = state.data.products.find(p => p.id === id); if (!p) return;
   state.drafts = [{ ...structuredClone(p), targetId: p.id, aliases: p.aliases.join(', '), variants: p.variants.map(v => ({ spec: v.spec, unit: v.unit, price: decimal(v.pricePaise), sourceReferenceId:v.sourceReferenceId })) }];
+  if(!state.drafts[0].photo)state.drafts[0].photo=await referencePhotoData(linkedPicture(referenceState.catalog,p));
   state.page = 'add'; state.fullEdit = true; state.warnings = []; shell(); window.scrollTo(0, 0);
 }
 async function saveDrafts() {
@@ -256,7 +268,7 @@ async function parseListing() {
 async function smartSearch() {
   if (state.busy) return;
   const query = state.query.trim(); if (!query) { $('#search')?.focus(); return; }
-  const local = search(state.data.products, query);
+  const local = search(state.data.products, searchQuery(query));
   if (!local.length) await changeData(data => { if (!data.misses.some(m => m.query === query && !m.resolvedItemId)) data.misses.push({ id: uid(), query, searchedAt: Date.now(), resolvedItemId: null }); });
   if (local.length && local[0].score >= .72) { toast('Found locally — no AI needed.'); return; }
   if (!state.config.aiConfigured) { toast('No local match. Add an alias from Missed searches, or try another name.'); return; }
@@ -309,7 +321,7 @@ async function restore(file) {
   if (!file) return; if (file.size > 50_000_000) throw new Error('Choose a backup smaller than 50 MB.');
   const backup = validateBackup(JSON.parse(await file.text()));
   confirmDialog('Replace this browser’s catalog?', `Restore ${backup.products.length} items from this web preview backup. Export your current catalog first if you need to keep it. Your Android catalog and local API key will stay unchanged.`, async () => {
-    const next = { products: backup.products, history: backup.history, misses: backup.misses, settings: { tax: ['GST not specified', 'incl. GST', 'excl. GST'].includes(backup.settings?.tax) ? backup.settings.tax : 'GST not specified', language: backup.settings?.language === 'en-IN' ? 'en-IN' : 'hi-IN' } };
+    const next = { products: backup.products, history: backup.history, misses: backup.misses, settings: { tax: ['GST not specified', 'incl. GST', 'excl. GST'].includes(backup.settings?.tax) ? backup.settings.tax : 'GST not specified', language: backup.settings?.language === 'en-IN' ? 'en-IN' : 'hi-IN', uiLanguage:['en','hi','hinglish'].includes(backup.settings?.uiLanguage)?backup.settings.uiLanguage:'en' } };
     await writeData(next); state.data = next; state.query = ''; state.category = ''; state.rewrites = null; state.drafts = []; toast('Web preview backup restored.');
   }, 'Restore backup');
 }
@@ -324,6 +336,8 @@ document.addEventListener('click', event => {
       if(state.drafts.length)throw new Error('Save or discard your current review before activating reference variants.');
       const drafts=referenceDrafts(referenceState.catalog,referenceState.selected,state.data.products);
       if(!drafts.length)throw new Error('Select variants that you carry first.');
+      state.busy=true;button.disabled=true;
+      try {for(const draft of drafts)if(!draft.photo)draft.photo=await referencePhotoData(draft.referenceImageAsset);}finally {state.busy=false;button.disabled=false;}
       state.drafts=drafts;state.fullEdit=false;state.warnings=['You are confirming that you carry these selected variants. Check each specification, selling unit, selling price and shop tax label. Source list rates stay separate. No stock quantity is recorded.'];state.page='add';shell();window.scrollTo(0,0);return;
     }
     if (button.dataset.page) { if (state.busy) return toast('Wait for the current request to finish.'); state.page = button.dataset.page; shell(); window.scrollTo(0, 0); return; }
@@ -394,6 +408,10 @@ document.addEventListener('focusout', event => {
 });
 document.addEventListener('change', event => {
   const input = event.target;
+  if(input.hasAttribute('data-ui-language')) {
+    const value=input.value;if(!['en','hi','hinglish'].includes(value))return;
+    changeData(data=>{data.settings.uiLanguage=value;}).then(()=>shell()).catch(error=>toast(error.message));return;
+  }
   if(input.hasAttribute('data-reference-select')) {
     const id=input.dataset.referenceSelect;if(input.checked)referenceState.selected.add(id);else referenceState.selected.delete(id);
     // Keep expanded table cards open while selecting multiple sizes.
@@ -416,7 +434,14 @@ window.addEventListener('hashchange', () => { if (['#catalog','#reference'].incl
 try {
   await openDatabase(); state.data = await readData();
   if (!state.data) { state.data = sampleData(); await writeData(state.data); }
+  try {configureTranslations(await fetch('/ui/translations.json').then(r=>r.json()));}catch { /* Existing catalog stays usable if display assets are missing. */ }
   try { state.config = await fetch('/api/config').then(r => r.json()); } catch { /* Offline catalog remains available. */ }
   try { const response=await fetch('/reference/catalog.json');if(response.ok)referenceState.catalog=await response.json(); } catch { /* Shop data still works if the reference asset is unavailable. */ }
+  if(referenceState.catalog) {try {const pictures=await fetch('/reference/images.json').then(r=>r.json());referenceState.catalog=withReferencePictures(referenceState.catalog,pictures);}catch {}}
   shell();
+  let pendingLocalization=false;
+  new MutationObserver(()=>{
+    if(pendingLocalization)return;pendingLocalization=true;
+    queueMicrotask(()=>{pendingLocalization=false;localizeUi(document);});
+  }).observe(document.body,{childList:true,subtree:true,characterData:true});
 } catch (error) { $('#app').innerHTML = `<div class="startup-error"><h1>Let’s get your shop open.</h1><p>${esc(error.message)}</p><p>Enable browser storage, then reload this page.</p></div>`; }

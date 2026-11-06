@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -60,6 +61,8 @@ private val colors = lightColorScheme(primary = Green, onPrimary = Color.White, 
 
 @Composable
 fun DukaanApp(vm: InventoryViewModel) {
+    val uiLanguage by vm.uiLanguage.collectAsStateWithLifecycle()
+    CompositionLocalProvider(LocalUiLanguage provides uiLanguage,LocalUiTranslations provides vm.uiTranslations) {
     MaterialTheme(colorScheme = colors, typography = Typography()) {
         val context = LocalContext.current
         val tab by vm.tab.collectAsStateWithLifecycle()
@@ -87,7 +90,7 @@ fun DukaanApp(vm: InventoryViewModel) {
                 })
             } catch (_: ActivityNotFoundException) { vm.message("Voice input isn't installed. You can type, or enable a speech service on your phone.") }
         }
-        LaunchedEffect(vm) { vm.messages.collect { snackbar.showSnackbar(it) } }
+        LaunchedEffect(vm,uiLanguage) { vm.messages.collect { snackbar.showSnackbar(vm.uiTranslations.text(it,uiLanguage)) } }
         LaunchedEffect(file) { file?.let {
             try {
                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", it)
@@ -100,9 +103,9 @@ fun DukaanApp(vm: InventoryViewModel) {
         BackHandler(enabled = tab != 0 && !busy) { vm.tab.value = 0 }
         Scaffold(containerColor = Cream, snackbarHost = { SnackbarHost(snackbar) }, bottomBar = {
             NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf("Catalog" to Icons.Outlined.Storefront, "Add items" to Icons.Outlined.AddCircleOutline, "Settings" to Icons.Outlined.Tune, "Reference" to Icons.Outlined.MenuBook).forEachIndexed { i, (label, icon) ->
+                listOf("Catalog" to Icons.Outlined.Storefront, "Add items" to Icons.Outlined.AddCircleOutline, "Settings" to Icons.Outlined.Tune, "Reference" to Icons.AutoMirrored.Outlined.MenuBook).forEachIndexed { i, (label, icon) ->
                     NavigationBarItem(selected = tab == i, enabled = !busy, onClick = { vm.tab.value = i },
-                        icon = { Icon(icon, label) }, label = { Text(label) }, colors = NavigationBarItemDefaults.colors(indicatorColor = Color(0xFFE1EEE3), selectedIconColor = Green, selectedTextColor = Green))
+                        icon = { Icon(icon, label) }, label = { Text(ui(label)) }, colors = NavigationBarItemDefaults.colors(indicatorColor = Color(0xFFE1EEE3), selectedIconColor = Green, selectedTextColor = Green))
                 }
             }
         }) { padding ->
@@ -117,16 +120,17 @@ fun DukaanApp(vm: InventoryViewModel) {
             }
         }
     }
+    }
 }
 
 @Composable
-private fun Eyebrow(text: String) { Text(text.uppercase(), fontSize = 11.sp, letterSpacing = 1.8.sp, color = Green, fontWeight = FontWeight.Bold) }
+private fun Eyebrow(text: String) { Text(ui(text).uppercase(), fontSize = 11.sp, letterSpacing = 1.8.sp, color = Green, fontWeight = FontWeight.Bold) }
 @Composable
 private fun Header(eyebrow: String, title: String, subtitle: String) {
     Column(Modifier.fillMaxWidth().padding(top = 28.dp, bottom = 22.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Eyebrow(eyebrow)
-        Text(title, fontFamily = FontFamily.Serif, fontSize = 34.sp, lineHeight = 40.sp, color = Ink)
-        Text(subtitle, color = Muted, style = MaterialTheme.typography.bodyMedium)
+        Text(ui(title), fontFamily = FontFamily.Serif, fontSize = 34.sp, lineHeight = 40.sp, color = Ink)
+        Text(ui(subtitle), color = Muted, style = MaterialTheme.typography.bodyMedium)
     }
 }
 @Composable
@@ -142,8 +146,8 @@ private fun EmptyState(icon: ImageVector, title: String, subtitle: String, actio
         Box(Modifier.size(82.dp).clip(RoundedCornerShape(24.dp)).background(Color(0xFFE1EEE3)), contentAlignment = Alignment.Center) {
             Icon(icon, null, Modifier.size(38.dp), tint = Green)
         }
-        Text(title, fontFamily = FontFamily.Serif, fontSize = 25.sp)
-        Text(subtitle, color = Muted, style = MaterialTheme.typography.bodyMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(ui(title), fontFamily = FontFamily.Serif, fontSize = 25.sp)
+        Text(ui(subtitle), color = Muted, style = MaterialTheme.typography.bodyMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         action()
     }
 }
@@ -151,6 +155,7 @@ private fun EmptyState(icon: ImageVector, title: String, subtitle: String, actio
 private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
     val query by vm.query.collectAsStateWithLifecycle()
     val products by vm.products.collectAsStateWithLifecycle()
+    val reference by vm.referenceCatalog.collectAsStateWithLifecycle()
     val hits by vm.hits.collectAsStateWithLifecycle()
     val rewriting by vm.rewriting.collectAsStateWithLifecycle()
     val tax by vm.taxLabel.collectAsStateWithLifecycle()
@@ -167,13 +172,13 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 Box(Modifier.size(7.dp).background(Green, CircleShape))
-                Text("Search works offline", color = Green, fontSize = 12.sp)
-                Text("·  ${products.size} ${if (products.size == 1) "item" else "items"}", color = Muted, fontSize = 12.sp)
+                Text(ui("Search works offline"), color = Green, fontSize = 12.sp)
+                Text(ui("·  ${products.size} ${if (products.size == 1) "item" else "items"}"), color = Muted, fontSize = 12.sp)
             }
         }
         item {
             OutlinedTextField(value = query, onValueChange = { vm.query.value = it }, modifier = Modifier.fillMaxWidth().testTag("search"),
-                placeholder = { Text("Search “tala 50mm”") }, leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                placeholder = { Text(ui("Search “tala 50mm”")) }, leadingIcon = { Icon(Icons.Outlined.Search, null) },
                 trailingIcon = { Row { if (query.isNotBlank()) IconButton(onClick = { vm.query.value = "" }) { Icon(Icons.Outlined.Close, "Clear search") }
                     IconButton(onClick = voice) { Icon(Icons.Outlined.MicNone, "Speak a search", tint = Green) } } },
                 singleLine = true, shape = RoundedCornerShape(16.dp), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -181,7 +186,7 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
         }
         if (products.isNotEmpty()) item {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = category == null, onClick = { vm.searchCategory.value = null }, label = { Text("All items") })
+                FilterChip(selected = category == null, onClick = { vm.searchCategory.value = null }, label = { Text(ui("All items")) })
                 products.map { it.category }.filter(String::isNotBlank).distinct().sorted().forEach { name ->
                     FilterChip(selected = category == name, onClick = { vm.searchCategory.value = if (category == name) null else name }, label = { Text(name) })
                 }
@@ -190,41 +195,44 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
         if (products.isEmpty()) item {
             Panel {
                 EmptyState(Icons.Outlined.Inventory2, "Your shelves, searchable", "Add your first item with its sizes and selling prices. Everything stays on this phone.") {
-                    Button(onClick = vm::manual) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.width(6.dp)); Text("Add your first item") }
-                    TextButton(onClick = { vm.tab.value = 1 }) { Text("Or speak a list of items") }
+                    Button(onClick = vm::manual) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.width(6.dp)); Text(ui("Add your first item")) }
+                    TextButton(onClick = { vm.tab.value = 1 }) { Text(ui("Or speak a list of items")) }
                 }
             }
-            Text("ताला हो या पेच — बस नाम से ढूँढें।", Modifier.fillMaxWidth().padding(top = 22.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = Muted, fontSize = 14.sp)
+            Text(ui("ताला हो या पेच — बस नाम से ढूँढें।"), Modifier.fillMaxWidth().padding(top = 22.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = Muted, fontSize = 14.sp)
         }
         else {
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Eyebrow(if (query.isBlank()) "On your shelves" else "${displayed.size} matches")
-                    TextButton(onClick = vm::manual) { Icon(Icons.Outlined.Add, null, Modifier.size(17.dp)); Text("Add item") }
+                    TextButton(onClick = vm::manual) { Icon(Icons.Outlined.Add, null, Modifier.size(17.dp)); Text(ui("Add item")) }
                 }
             }
             if (displayed.isEmpty()) item {
                 EmptyState(Icons.Outlined.SearchOff, "No matching items", "Try another name, Hindi spelling or size.") {
-                    if (query.isNotBlank()) OutlinedButton(onClick = vm::submitSearch, enabled = !rewriting) { Text(if (rewriting) "Understanding your search…" else "Try smart search") }
-                    TextButton(onClick = vm::manual) { Text("Add an item") }
+                    if (query.isNotBlank()) OutlinedButton(onClick = vm::submitSearch, enabled = !rewriting) { Text(ui(if (rewriting) "Understanding your search…" else "Try smart search")) }
+                    TextButton(onClick = vm::manual) { Text(ui("Add an item")) }
                 }
             }
-            if (rewriting) item { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Understanding your search…", color = Muted, fontSize = 12.sp) }
-            items(displayed, key = { it.product.id }) { hit -> ProductCard(hit, tax, { vm.edit(hit.product) }) { editing = hit.product to it } }
+            if (rewriting) item { LinearProgressIndicator(Modifier.fillMaxWidth()); Text(ui("Understanding your search…"), color = Muted, fontSize = 12.sp) }
+            items(displayed, key = { it.product.id }) { hit -> ProductCard(hit, tax, reference?.productFor(hit.product.variants.firstOrNull { it.sourceReferenceId!=null }?.sourceReferenceId), { vm.edit(hit.product) }) { editing = hit.product to it } }
         }
     }
     editing?.let { (product, variant) -> PriceDialog(vm, product, variant) { editing = null } }
 }
 @Composable
-private fun ProductCard(hit: SearchHit, tax: String, edit: () -> Unit, price: (ProductVariant) -> Unit) {
+private fun ProductCard(hit: SearchHit, tax: String, sourceProduct: ReferenceProduct?, edit: () -> Unit, price: (ProductVariant) -> Unit) {
     val context = LocalContext.current
+    val imageAsset=sourceProduct?.imageAsset
+    val displayName=if(hit.product.name==sourceProduct?.shopName) productLabel(hit.product.name) else hit.product.name
     var expanded by rememberSaveable(hit.product.id) { mutableStateOf(false) }
     Panel(Modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (hit.product.photoPath != null) AsyncImage(File(context.filesDir, hit.product.photoPath), "Photo of ${hit.product.name}", Modifier.size(62.dp).clip(RoundedCornerShape(14.dp)), contentScale = ContentScale.Crop)
+            if (hit.product.photoPath != null || imageAsset != null) AsyncImage(hit.product.photoPath?.let { File(context.filesDir, it) } ?: "file:///android_asset/$imageAsset", "Photo of ${hit.product.name}", Modifier.size(62.dp).clip(RoundedCornerShape(14.dp)), contentScale = ContentScale.Fit)
             else Box(Modifier.size(62.dp).clip(RoundedCornerShape(14.dp)).background(Cream), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Handyman, null, tint = Green) }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(hit.product.name, fontWeight = FontWeight.SemiBold, fontSize = 19.sp)
+                Text(displayName, fontWeight = FontWeight.SemiBold, fontSize = 19.sp)
+                if(displayName!=hit.product.name)Text(hit.product.name,fontSize=11.sp,color=Muted)
                 Text(listOf(hit.product.brand, hit.product.category).filter(String::isNotBlank).joinToString(" · "), color = Muted, fontSize = 12.sp)
             }
             IconButton(onClick = edit) { Icon(Icons.Outlined.Edit, "Edit ${hit.product.name}", tint = Muted, modifier = Modifier.size(20.dp)) }
@@ -234,18 +242,18 @@ private fun ProductCard(hit: SearchHit, tax: String, edit: () -> Unit, price: (P
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { price(variant) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(variant.spec.ifBlank { "Standard" }, fontSize = 14.sp)
-                    Text("Price updated ${date(variant.updatedAt)}", color = Muted, fontSize = 10.sp)
-                    if (variant.sourceReferenceId != null) Text("Confirmed shop price · reference linked", color = Green, fontSize = 10.sp)
+                    Text(ui("Price updated ${date(variant.updatedAt)}"), color = Muted, fontSize = 10.sp)
+                    if (variant.sourceReferenceId != null) Text(ui("Confirmed shop price · reference linked"), color = Green, fontSize = 10.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(rupees(variant.pricePaise), fontWeight = FontWeight.Bold, fontSize = 26.sp, color = Green)
-                    Text("per ${variant.unit}", fontSize = 11.sp, color = Muted)
+                    Text(ui("per ${ui(variant.unit)}"), fontSize = 11.sp, color = Muted)
                 }
                 Spacer(Modifier.width(8.dp)); Icon(Icons.Outlined.Edit, "Edit price", Modifier.size(14.dp), tint = Muted)
             }
         }
-        if (hit.variants.size > 4) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show fewer sizes" else "Show all ${hit.variants.size} sizes") }
-        Text("Latest price update: ${date(hit.product.variants.maxOfOrNull { it.updatedAt } ?: hit.product.updatedAt)}", fontSize = 10.sp, color = Muted)
+        if (hit.variants.size > 4) TextButton(onClick = { expanded = !expanded }) { Text(ui(if (expanded) "Show fewer sizes" else "Show all ${hit.variants.size} sizes")) }
+        Text(ui("Latest price update: ${date(hit.product.variants.maxOfOrNull { it.updatedAt } ?: hit.product.updatedAt)}"), fontSize = 10.sp, color = Muted)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(tax, fontSize = 10.sp, color = Muted)
             val location = listOf(hit.product.zone, hit.product.locationNote).filter(String::isNotBlank).joinToString(" · ")
@@ -260,23 +268,23 @@ private fun PriceDialog(vm: InventoryViewModel, product: Product, variant: Produ
     var history by remember { mutableStateOf<List<PriceHistoryEntity>?>(null) }
     val busy by vm.busy.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = { if (!busy) dismiss() }, title = { Text("Update selling price") }, text = {
+    AlertDialog(onDismissRequest = { if (!busy) dismiss() }, title = { Text(ui("Update selling price")) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("${product.name} · ${variant.spec.ifBlank { "Standard" }}")
-            OutlinedTextField(amount, { amount = it }, label = { Text("Rupees per ${variant.unit}") }, singleLine = true,
+            Text(ui("${product.name} · ${variant.spec.ifBlank { "Standard" }}"))
+            OutlinedTextField(amount, { amount = it }, label = { Text(ui("Rupees per ${ui(variant.unit)}")) }, singleLine = true,
                 enabled = !busy, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), isError = paise(amount) == null)
-            OutlinedTextField(discount, { discount = it }, label = { Text("Discount (%) — optional") }, singleLine = true,
+            OutlinedTextField(discount, { discount = it }, label = { Text(ui("Discount (%) — optional")) }, singleLine = true,
                 enabled = !busy, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), isError = discount.isNotBlank() && discountedPaise(amount, discount) == null)
-            discountedPaise(amount, discount)?.let { Text("Selling price: ${rupees(it)} per ${variant.unit}", color = Green, fontWeight = FontWeight.SemiBold) }
-            Text("Last price update: ${date(variant.updatedAt)}. Discount applies once to the entered price.", fontSize = 11.sp, color = Muted)
-            TextButton(onClick = { scope.launch { runCatching { vm.history(variant.id) }.onSuccess { history = it }.onFailure { vm.message("Could not load price history.") } } }) { Text("View price history") }
+            discountedPaise(amount, discount)?.let { Text(ui("Selling price: ${rupees(it)} per ${variant.unit}"), color = Green, fontWeight = FontWeight.SemiBold) }
+            Text(ui("Last price update: ${date(variant.updatedAt)}. Discount applies once to the entered price."), fontSize = 11.sp, color = Muted)
+            TextButton(onClick = { scope.launch { runCatching { vm.history(variant.id) }.onSuccess { history = it }.onFailure { vm.message("Could not load price history.") } } }) { Text(ui("View price history")) }
             history?.let { rows -> Column(Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
-                if (rows.isEmpty()) Text("No price changes yet.", color = Muted)
-                rows.forEach { Text("${rupees(it.oldPrice)} → ${rupees(it.newPrice)} · ${date(it.changedAt)}", fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)) }
+                if (rows.isEmpty()) Text(ui("No price changes yet."), color = Muted)
+                rows.forEach { Text(ui("${rupees(it.oldPrice)} → ${rupees(it.newPrice)} · ${date(it.changedAt)}"), fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)) }
             } }
         }
-    }, confirmButton = { Button(onClick = { vm.price(product, variant, decimalPrice(requireNotNull(discountedPaise(amount, discount))), dismiss) }, enabled = !busy && discountedPaise(amount, discount) != null) { Text("Save price") } },
-        dismissButton = { TextButton(onClick = dismiss, enabled = !busy) { Text("Cancel") } })
+    }, confirmButton = { Button(onClick = { vm.price(product, variant, decimalPrice(requireNotNull(discountedPaise(amount, discount))), dismiss) }, enabled = !busy && discountedPaise(amount, discount) != null) { Text(ui("Save price")) } },
+        dismissButton = { TextButton(onClick = dismiss, enabled = !busy) { Text(ui("Cancel")) } })
 }
 
 @Composable
@@ -296,36 +304,36 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
         item { Header("Less typing, more selling", if (review.isEmpty()) "Stock your catalog" else "Check before saving", if (review.isEmpty()) "Speak or type the way you do at the counter." else "Confirm names, sizes and every selling price.") }
         if (review.isEmpty()) {
             item { Panel {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { Icon(Icons.Outlined.AutoAwesome, null, tint = Green, modifier = Modifier.size(20.dp)); Text("Tell us what's on the shelf", fontWeight = FontWeight.SemiBold) }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { Icon(Icons.Outlined.AutoAwesome, null, tint = Green, modifier = Modifier.size(20.dp)); Text(ui("Tell us what's on the shelf"), fontWeight = FontWeight.SemiBold) }
                 OutlinedTextField(listing, { vm.listing.value = it }, modifier = Modifier.fillMaxWidth().testTag("listing-input"), enabled = !busy,
-                    placeholder = { Text("Godrej tala 50mm 450, 65mm 600. Wood screw 1 inch 90 per packet.") }, minLines = 5, maxLines = 10, shape = RoundedCornerShape(12.dp))
+                    placeholder = { Text(ui("Godrej tala 50mm 450, 65mm 600. Wood screw 1 inch 90 per packet.")) }, minLines = 5, maxLines = 10, shape = RoundedCornerShape(12.dp))
                 OutlinedButton(onClick = { photoIndex = null; picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !busy) {
-                    Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(if (listingImage == null) "Add image to read items" else "Change input image")
+                    Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(ui(if (listingImage == null) "Add image to read items" else "Change input image"))
                 }
                 listingImage?.let { path ->
                     AsyncImage(File(context.filesDir, path), "Image to read items from", Modifier.fillMaxWidth().height(160.dp), contentScale = ContentScale.Fit)
                     Row {
-                        TextButton(onClick = { photoIndex = null; cropUri = Uri.fromFile(File(context.filesDir, path)) }, enabled = !busy) { Text("Crop input image") }
-                        TextButton(onClick = { vm.listingImage.value = null }, enabled = !busy) { Text("Remove image") }
+                        TextButton(onClick = { photoIndex = null; cropUri = Uri.fromFile(File(context.filesDir, path)) }, enabled = !busy) { Text(ui("Crop input image")) }
+                        TextButton(onClick = { vm.listingImage.value = null }, enabled = !busy) { Text(ui("Remove image")) }
                     }
-                    Text("Review sends this crop to OpenAI. Missing prices stay blank. A single-item image is also used as its photo.", fontSize = 11.sp, color = Muted)
+                    Text(ui("Review sends this crop to OpenAI. Missing prices stay blank. A single-item image is also used as its photo."), fontSize = 11.sp, color = Muted)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = voice, enabled = !busy) { Icon(Icons.Outlined.MicNone, null, Modifier.size(18.dp)); Text("Speak") }
-                    Button(onClick = vm::parse, enabled = !busy && (listing.isNotBlank() || listingImage != null) && configured, modifier = Modifier.weight(1f)) { Text(if (busy) "Understanding…" else "Review items") }
+                    OutlinedButton(onClick = voice, enabled = !busy) { Icon(Icons.Outlined.MicNone, null, Modifier.size(18.dp)); Text(ui("Speak")) }
+                    Button(onClick = vm::parse, enabled = !busy && (listing.isNotBlank() || listingImage != null) && configured, modifier = Modifier.weight(1f)) { Text(ui(if (busy) "Understanding…" else "Review items")) }
                 }
-                Text("Text or image · AI suggests categories · Always reviewed before saving", color = Muted, fontSize = 11.sp)
-                if (!configured) TextButton(onClick = { vm.tab.value = 2 }) { Text("Set up OpenAI to use natural entry") }
+                Text(ui("Text or image · AI suggests categories · Always reviewed before saving"), color = Muted, fontSize = 11.sp)
+                if (!configured) TextButton(onClick = { vm.tab.value = 2 }) { Text(ui("Set up OpenAI to use natural entry")) }
             } }
             item { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                HorizontalDivider(Modifier.weight(1f), color = Border); Text("  or  ", color = Muted); HorizontalDivider(Modifier.weight(1f), color = Border)
+                HorizontalDivider(Modifier.weight(1f), color = Border); Text(ui("  or  "), color = Muted); HorizontalDivider(Modifier.weight(1f), color = Border)
             } }
             item { OutlinedButton(onClick = vm::manual, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) {
-                Icon(Icons.Outlined.EditNote, null); Spacer(Modifier.width(8.dp)); Text("Add an item manually")
-            }; Text("Works without internet. Add a name, size and price.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp)) }
+                Icon(Icons.Outlined.EditNote, null); Spacer(Modifier.width(8.dp)); Text(ui("Add an item manually"))
+            }; Text(ui("Works without internet. Add a name, size and price."), color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp)) }
         } else {
             if (warnings.isNotEmpty()) item { Surface(color = Color(0xFFFFEACB), shape = RoundedCornerShape(12.dp)) {
-                Text(warnings.joinToString("\n"), Modifier.padding(14.dp), color = Color(0xFF755020), fontSize = 13.sp)
+                Text(ui(warnings.joinToString("\n")), Modifier.padding(14.dp), color = Color(0xFF755020), fontSize = 13.sp)
             } }
             items(review.size) { index ->
                 val draft = review[index]
@@ -335,11 +343,11 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
             }
             item {
                 val error = review.firstNotNullOfOrNull { it.error() }
-                if (error != null) Text(error, color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.padding(bottom = 10.dp))
+                if (error != null) Text(ui(error), color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.padding(bottom = 10.dp))
                 Button(onClick = vm::save, enabled = !busy && error == null, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(14.dp)) {
-                    Icon(Icons.Outlined.Check, null); Spacer(Modifier.width(8.dp)); Text(if (busy) "Saving…" else "Save ${review.size} ${if (review.size == 1) "item" else "items"} on this phone")
+                    Icon(Icons.Outlined.Check, null); Spacer(Modifier.width(8.dp)); Text(ui(if (busy) "Saving…" else "Save ${review.size} ${if (review.size == 1) "item" else "items"} on this phone"))
                 }
-                TextButton(onClick = vm::cancelReview, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Discard this review") }
+                TextButton(onClick = vm::cancelReview, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(ui("Discard this review")) }
             }
         }
     }
@@ -355,57 +363,57 @@ private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: P
             Eyebrow(if (draft.targetId != null) "Update existing item" else "New item · ${index + 1}")
             IconButton(onClick = remove, enabled = !busy) { Icon(Icons.Outlined.Close, "Remove item from review", Modifier.size(18.dp)) }
         }
-        OutlinedTextField(draft.name, { change(draft.copy(name = it)) }, Modifier.fillMaxWidth().testTag("item-name-$index"), enabled = !busy, label = { Text("Item name *") }, singleLine = true)
+        OutlinedTextField(draft.name, { change(draft.copy(name = it)) }, Modifier.fillMaxWidth().testTag("item-name-$index"), enabled = !busy, label = { Text(ui("Item name *")) }, singleLine = true)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedTextField(draft.brand, { change(draft.copy(brand = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text("Brand") }, singleLine = true)
-            OutlinedTextField(draft.category, { change(draft.copy(category = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text("Category") }, singleLine = true)
+            OutlinedTextField(draft.brand, { change(draft.copy(brand = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text(ui("Brand")) }, singleLine = true)
+            OutlinedTextField(draft.category, { change(draft.copy(category = it)) }, Modifier.weight(1f), enabled = !busy, label = { Text(ui("Category")) }, singleLine = true)
         }
         TextButton(onClick = categorize, enabled = !busy && aiConfigured && (draft.name.isNotBlank() || draft.photoPath != null)) {
-            Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Suggest category & aliases")
+            Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(ui("Suggest category & aliases"))
         }
         if (draft.targetId != null) {
-            Text("Prices for matching sizes will update. Review carefully before saving.", color = Green, fontSize = 12.sp)
-            TextButton(onClick = { change(draft.copy(targetId = null)) }, enabled = !busy) { Text("Save as a separate item instead") }
+            Text(ui("Prices for matching sizes will update. Review carefully before saving."), color = Green, fontSize = 12.sp)
+            TextButton(onClick = { change(draft.copy(targetId = null)) }, enabled = !busy) { Text(ui("Save as a separate item instead")) }
         } else if (duplicate != null) {
-            Text("${duplicate.name}${if (duplicate.brand.isNotBlank()) " · ${duplicate.brand}" else ""} already exists.", color = Color(0xFF9A652D), fontSize = 12.sp)
+            Text(ui("${duplicate.name}${if (duplicate.brand.isNotBlank()) " · ${duplicate.brand}" else ""} already exists."), color = Color(0xFF9A652D), fontSize = 12.sp)
             TextButton(onClick = { change(draft.copy(targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
-                aliases = (duplicate.aliases + draft.aliases.split(',')).distinct().joinToString(", "))) }, enabled = !busy) { Text("Update that item instead") }
+                aliases = (duplicate.aliases + draft.aliases.split(',')).distinct().joinToString(", "))) }, enabled = !busy) { Text(ui("Update that item instead")) }
         }
-        Text("SIZES & SELLING PRICES", fontSize = 10.sp, letterSpacing = 1.sp, color = Muted, fontWeight = FontWeight.Bold)
+        Text(ui("SIZES & SELLING PRICES"), fontSize = 10.sp, letterSpacing = 1.sp, color = Muted, fontWeight = FontWeight.Bold)
         draft.variants.forEachIndexed { variantIndex, variant ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 variant.sourceReferenceId?.let { SourcePriceNote(vm, it) }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(variant.spec, { value -> change(draft.copy(variants = draft.variants.toMutableList().also { it[variantIndex] = variant.copy(spec = value) })) },
-                        Modifier.weight(1f), enabled = !busy, label = { Text("Size / spec") }, placeholder = { Text("e.g. 50 mm") }, singleLine = true)
+                        Modifier.weight(1f), enabled = !busy, label = { Text(ui("Size / spec")) }, placeholder = { Text(ui("e.g. 50 mm")) }, singleLine = true)
                     if (draft.variants.size > 1) IconButton(onClick = { change(draft.copy(variants = draft.variants.filterIndexed { i, _ -> i != variantIndex })) }, enabled = !busy) { Icon(Icons.Outlined.RemoveCircleOutline, "Remove size") }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(variant.price, { value -> change(draft.copy(variants = draft.variants.toMutableList().also { it[variantIndex] = variant.copy(price = value) })) },
-                        Modifier.weight(1f).testTag("item-price-$index-$variantIndex"), enabled = !busy, label = { Text("Price (₹) *") }, singleLine = true,
+                        Modifier.weight(1f).testTag("item-price-$index-$variantIndex"), enabled = !busy, label = { Text(ui("Price (₹) *")) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
                     UnitPicker(variant.unit, !busy, Modifier.weight(1f)) { value -> change(draft.copy(variants = draft.variants.toMutableList().also { it[variantIndex] = variant.copy(unit = value) })) }
                 }
                 OutlinedTextField(variant.discount, { value -> change(draft.copy(variants = draft.variants.toMutableList().also { it[variantIndex] = variant.copy(discount = value) })) },
-                    Modifier.fillMaxWidth().testTag("item-discount-$index-$variantIndex"), enabled = !busy, label = { Text("Discount (%) — optional") }, singleLine = true,
+                    Modifier.fillMaxWidth().testTag("item-discount-$index-$variantIndex"), enabled = !busy, label = { Text(ui("Discount (%) — optional")) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
-                discountedPaise(variant.price, variant.discount)?.let { Text("Selling price: ${rupees(it)} per ${variant.unit}", color = Green, fontSize = 13.sp) }
+                discountedPaise(variant.price, variant.discount)?.let { Text(ui("Selling price: ${rupees(it)} per ${variant.unit}"), color = Green, fontSize = 13.sp) }
             }
         }
-        TextButton(onClick = { change(draft.copy(variants = draft.variants + VariantDraft())) }, enabled = !busy) { Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Text("Add another size") }
+        TextButton(onClick = { change(draft.copy(variants = draft.variants + VariantDraft())) }, enabled = !busy) { Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Text(ui("Add another size")) }
         OutlinedTextField(draft.aliases, { change(draft.copy(aliases = it)) }, Modifier.fillMaxWidth(), enabled = !busy,
-            label = { Text("Other names, separated by commas") }, placeholder = { Text("tala, ताला, lock") }, minLines = 1, maxLines = 3)
+            label = { Text(ui("Other names, separated by commas")) }, placeholder = { Text(ui("tala, ताला, lock")) }, minLines = 1, maxLines = 3)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             draft.photoPath?.let { AsyncImage(File(context.filesDir, it), "Product photo", Modifier.size(64.dp).clip(RoundedCornerShape(10.dp)), contentScale = ContentScale.Crop) }
             Column {
-                OutlinedButton(onClick = photo, enabled = !busy) { Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(if (draft.photoPath == null) "Add photo" else "Change photo") }
-                if (draft.photoPath != null) TextButton(onClick = recrop, enabled = !busy) { Text("Crop photo") }
+                OutlinedButton(onClick = photo, enabled = !busy) { Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(ui(if (draft.photoPath == null) "Add photo" else "Change photo")) }
+                if (draft.photoPath != null) TextButton(onClick = recrop, enabled = !busy) { Text(ui("Crop photo")) }
             }
         }
-        TextButton(onClick = { more = !more }) { Text(if (more) "Hide shelf location" else "Add shelf location (optional)") }
+        TextButton(onClick = { more = !more }) { Text(ui(if (more) "Hide shelf location" else "Add shelf location (optional)")) }
         if (more || draft.zone.isNotBlank() || draft.locationNote.isNotBlank()) {
-            OutlinedTextField(draft.zone, { change(draft.copy(zone = it)) }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text("Zone") }, singleLine = true)
-            OutlinedTextField(draft.locationNote, { change(draft.copy(locationNote = it)) }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text("Location note") }, singleLine = true)
+            OutlinedTextField(draft.zone, { change(draft.copy(zone = it)) }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(ui("Zone")) }, singleLine = true)
+            OutlinedTextField(draft.locationNote, { change(draft.copy(locationNote = it)) }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(ui("Location note")) }, singleLine = true)
         }
     }
 }
@@ -413,16 +421,17 @@ private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: P
 private fun UnitPicker(unit: String, enabled: Boolean, modifier: Modifier = Modifier, change: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { if (enabled) open = !open }, modifier = modifier) {
-        OutlinedTextField(unit.ifBlank { "Choose unit" }, {}, modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable), readOnly = true, enabled = enabled,
-            label = { Text("Per unit") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) })
+        OutlinedTextField(ui(unit.ifBlank { "Choose unit" }), {}, modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable), readOnly = true, enabled = enabled,
+            label = { Text(ui("Per unit")) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) })
         ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            units.forEach { value -> DropdownMenuItem(text = { Text(value) }, onClick = { change(value); open = false }) }
+            units.forEach { value -> DropdownMenuItem(text = { Text(ui(value)) }, onClick = { change(value); open = false }) }
         }
     }
 }
 
 @Composable
 private fun SettingsScreen(vm: InventoryViewModel) {
+    val uiLanguage by vm.uiLanguage.collectAsStateWithLifecycle()
     val configured by vm.keyConfigured.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val tax by vm.taxLabel.collectAsStateWithLifecycle()
@@ -441,51 +450,60 @@ private fun SettingsScreen(vm: InventoryViewModel) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { Header("Made for your counter", "Your shop settings", "Your catalog lives on this phone. Keep a backup.") }
         item { Panel {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Outlined.Key, null, tint = Green); Text("OpenAI", fontWeight = FontWeight.SemiBold, fontSize = 18.sp) }
-            Text(if (configured) "Key saved securely on this phone" else "Connect natural entry and smart search", color = Green, fontSize = 12.sp)
-            Text("Submitted text and images are sent to OpenAI for parsing or category suggestions. Your full catalog stays on this phone.", color = Muted, fontSize = 12.sp)
-            OutlinedTextField(key, { key = it }, modifier = Modifier.fillMaxWidth(), enabled = !busy, label = { Text(if (configured) "Replace API key" else "OpenAI API key") },
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Outlined.Key, null, tint = Green); Text(ui("OpenAI"), fontWeight = FontWeight.SemiBold, fontSize = 18.sp) }
+            Text(ui(if (configured) "Key saved securely on this phone" else "Connect natural entry and smart search"), color = Green, fontSize = 12.sp)
+            Text(ui("Submitted text and images are sent to OpenAI for parsing or category suggestions. Your full catalog stays on this phone."), color = Muted, fontSize = 12.sp)
+            OutlinedTextField(key, { key = it }, modifier = Modifier.fillMaxWidth(), enabled = !busy, label = { Text(ui(if (configured) "Replace API key" else "OpenAI API key")) },
                 singleLine = true, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { vm.saveKey(key); key = "" }, enabled = key.startsWith("sk-") && !busy) { Text("Save key") }
-                if (configured) TextButton(onClick = vm::forgetKey, enabled = !busy) { Text("Remove key") }
+                Button(onClick = { vm.saveKey(key); key = "" }, enabled = key.startsWith("sk-") && !busy) { Text(ui("Save key")) }
+                if (configured) TextButton(onClick = vm::forgetKey, enabled = !busy) { Text(ui("Remove key")) }
             }
-            OutlinedTextField(model, { model = it }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text("Model") }, singleLine = true)
-            if (model != currentModel) TextButton(onClick = { vm.setModel(model) }, enabled = !busy) { Text("Save model") }
+            OutlinedTextField(model, { model = it }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(ui("Model")) }, singleLine = true)
+            if (model != currentModel) TextButton(onClick = { vm.setModel(model) }, enabled = !busy) { Text(ui("Save model")) }
         } }
         item { Panel {
-            Text("Prices & voice", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Text("How are your selling prices recorded?", color = Muted, fontSize = 12.sp)
-            listOf("GST not specified", "incl. GST", "excl. GST").forEach { value ->
-                Row(Modifier.fillMaxWidth().clickable(enabled = !busy) { vm.tax(value) }, verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = tax == value, onClick = { vm.tax(value) }, enabled = !busy); Text(value)
+            Text(ui("App language"),fontWeight=FontWeight.SemiBold,fontSize=18.sp)
+            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                listOf("en" to "English","hi" to "हिन्दी","hinglish" to "Hinglish").forEach { (code,label) ->
+                    FilterChip(selected=uiLanguage==code,onClick={vm.displayLanguage(code)},label={Text(ui(label))},modifier=Modifier.testTag("ui-language-$code"),enabled=!busy)
                 }
             }
-            Text("Voice language", color = Muted, fontSize = 12.sp)
+            Text(ui("Display language only; your saved names and original source stay unchanged."),fontSize=12.sp,color=Muted)
+        } }
+        item { Panel {
+            Text(ui("Prices & voice"), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(ui("How are your selling prices recorded?"), color = Muted, fontSize = 12.sp)
+            listOf("GST not specified", "incl. GST", "excl. GST").forEach { value ->
+                Row(Modifier.fillMaxWidth().clickable(enabled = !busy) { vm.tax(value) }, verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = tax == value, onClick = { vm.tax(value) }, enabled = !busy); Text(ui(value))
+                }
+            }
+            Text(ui("Voice language"), color = Muted, fontSize = 12.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = language == "hi-IN", onClick = { vm.voiceLanguage("hi-IN") }, label = { Text("हिन्दी / Hinglish") }, enabled = !busy)
-                FilterChip(selected = language == "en-IN", onClick = { vm.voiceLanguage("en-IN") }, label = { Text("English") }, enabled = !busy)
+                FilterChip(selected = language == "hi-IN", onClick = { vm.voiceLanguage("hi-IN") }, label = { Text(ui("हिन्दी / Hinglish")) }, enabled = !busy)
+                FilterChip(selected = language == "en-IN", onClick = { vm.voiceLanguage("en-IN") }, label = { Text(ui("English")) }, enabled = !busy)
             }
         } }
         item { Panel {
-            Text("Keep your catalog safe", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Text("Export a ZIP with all items, photos and price history. Save it to Drive, WhatsApp or another safe place. API keys are excluded.", color = Muted, fontSize = 12.sp)
-            Button(onClick = vm::export, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Export backup ZIP") }
+            Text(ui("Keep your catalog safe"), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(ui("Export a ZIP with all items, photos and price history. Save it to Drive, WhatsApp or another safe place. API keys are excluded."), color = Muted, fontSize = 12.sp)
+            Button(onClick = vm::export, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(ui("Export backup ZIP")) }
             OutlinedButton(onClick = { picker.launch(arrayOf("application/zip", "application/octet-stream", "application/x-zip-compressed")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Outlined.Restore, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Restore from backup")
+                Icon(Icons.Outlined.Restore, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(ui("Restore from backup"))
             }
         } }
         item { Panel {
-            Text("Help your catalog learn", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Text("Save a customer's words as another name for an item. Future searches will find it offline.", color = Muted, fontSize = 12.sp)
-            OutlinedButton(onClick = { showMisses = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Missed searches · ${misses.size}") }
+            Text(ui("Help your catalog learn"), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(ui("Save a customer's words as another name for an item. Future searches will find it offline."), color = Muted, fontSize = 12.sp)
+            OutlinedButton(onClick = { showMisses = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(ui("Missed searches · ${misses.size}")) }
         } }
-        item { Text("Dukaan · v${BuildConfig.VERSION_NAME}\nBuilt for one phone, one shop.", color = Muted, fontSize = 11.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+        item { Text(ui("Dukaan · v${BuildConfig.VERSION_NAME}\nBuilt for one phone, one shop."), color = Muted, fontSize = 11.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
     }
-    restoreUri?.let { uri -> AlertDialog(onDismissRequest = { restoreUri = null }, title = { Text("Replace this phone's catalog?") },
-        text = { Text("Restoring replaces all current items and history with the backup. Export your current catalog first if you need to keep it. Your OpenAI key stays unchanged.") },
-        confirmButton = { Button(onClick = { restoreUri = null; vm.restore(uri) }, enabled = !busy) { Text("Restore backup") } },
-        dismissButton = { TextButton(onClick = { restoreUri = null }) { Text("Cancel") } }) }
+    restoreUri?.let { uri -> AlertDialog(onDismissRequest = { restoreUri = null }, title = { Text(ui("Replace this phone's catalog?")) },
+        text = { Text(ui("Restoring replaces all current items and history with the backup. Export your current catalog first if you need to keep it. Your OpenAI key stays unchanged.")) },
+        confirmButton = { Button(onClick = { restoreUri = null; vm.restore(uri) }, enabled = !busy) { Text(ui("Restore backup")) } },
+        dismissButton = { TextButton(onClick = { restoreUri = null }) { Text(ui("Cancel")) } }) }
 }
 @Composable
 private fun MissesScreen(vm: InventoryViewModel, back: () -> Unit) {
@@ -496,17 +514,17 @@ private fun MissesScreen(vm: InventoryViewModel, back: () -> Unit) {
     var query by remember { mutableStateOf("") }
     BackHandler(onBack = back)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { TextButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, null); Text("Settings") }; Header("A catalog that learns", "Missed searches", "Connect a customer's words to the right item.") }
+        item { TextButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, null); Text(ui("Settings")) }; Header("A catalog that learns", "Missed searches", "Connect a customer's words to the right item.") }
         if (misses.isEmpty()) item { EmptyState(Icons.Outlined.CheckCircleOutline, "All caught up", "When a submitted search has no local match, it will appear here.") }
         items(misses, key = { it.id }) { miss -> Panel(Modifier.fillMaxWidth()) {
-            Text("“${miss.query}”", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(ui("“${miss.query}”"), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             Text(date(miss.searchedAt), color = Muted, fontSize = 12.sp)
-            TextButton(onClick = { selected = miss; query = "" }, enabled = !busy && products.isNotEmpty()) { Text("Choose item & save as alias") }
+            TextButton(onClick = { selected = miss; query = "" }, enabled = !busy && products.isNotEmpty()) { Text(ui("Choose item & save as alias")) }
         } }
     }
-    selected?.let { miss -> AlertDialog(onDismissRequest = { selected = null }, title = { Text("Which item is “${miss.query}”?") }, text = {
+    selected?.let { miss -> AlertDialog(onDismissRequest = { selected = null }, title = { Text(ui("Which item is “${miss.query}”?")) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(query, { query = it }, label = { Text("Find an item") }, singleLine = true)
+            OutlinedTextField(query, { query = it }, label = { Text(ui("Find an item")) }, singleLine = true)
             LazyColumn(Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 val matches = if (query.isBlank()) products else CatalogSearch.search(products, query).map { it.product }
                 items(matches, key = { it.id }) { product -> TextButton(onClick = { vm.learn(miss, product); selected = null }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
@@ -514,6 +532,6 @@ private fun MissesScreen(vm: InventoryViewModel, back: () -> Unit) {
                 } }
             }
         }
-    }, confirmButton = {}, dismissButton = { TextButton(onClick = { selected = null }) { Text("Cancel") } }) }
+    }, confirmButton = {}, dismissButton = { TextButton(onClick = { selected = null }) { Text(ui("Cancel")) } }) }
 }
 private fun date(timestamp: Long) = SimpleDateFormat("d MMM yyyy", Locale.forLanguageTag("en-IN")).format(Date(timestamp))

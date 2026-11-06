@@ -16,6 +16,7 @@ const files = new Map([
   ['/domain.js', ['domain.js', 'text/javascript; charset=utf-8']],
   ['/crop.js', ['crop.js', 'text/javascript; charset=utf-8']],
   ['/reference.js', ['reference.js', 'text/javascript; charset=utf-8']],
+  ['/i18n.js', ['i18n.js', 'text/javascript; charset=utf-8']],
   ['/reference/viewer', ['reference/viewer.html', 'text/html; charset=utf-8']],
   ['/reference/viewer.js', ['reference/viewer.js', 'text/javascript; charset=utf-8']],
   ['/reference/viewer.css', ['reference/viewer.css', 'text/css; charset=utf-8']],
@@ -58,6 +59,14 @@ export function createApp({ keyProvider = keyFromEnvironment, openAiFetch = fetc
     let pathname;
     try { pathname = new URL(request.url, `http://${host}`).pathname; }
     catch { return json(response, 400, { error: 'Invalid URL.' }); }
+    if (request.method === 'GET' && /^\/reference\/products\/[a-f0-9]{24}\.webp$/.test(pathname)) {
+      try {const content=await readFile(resolve(assets,pathname.slice(1)));response.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'no-store'});return response.end(content);}
+      catch {return json(response,404,{error:'Reference picture unavailable.'});}
+    }
+    if (request.method==='GET' && ['/reference/images.json','/ui/translations.json'].includes(pathname)) {
+      try {const content=await readFile(resolve(assets,pathname==='/reference/images.json'?'reference/images.json':'ui/translations.json'));response.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return response.end(content);}
+      catch {return json(response,404,{error:'Local display asset unavailable.'});}
+    }
     if (request.method === 'GET' && /^\/reference\/pages\/(?:[1-9]|[1-8][0-9]|9[0-2])\.webp$/.test(pathname)) {
       try {
         const page=Number(pathname.split('/').pop().split('.')[0]);

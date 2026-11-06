@@ -18,12 +18,13 @@ class ReferenceDraftTest {
         assertEquals(first.id,draft.variants.single().sourceReferenceId)
     }
     @Test fun carriedVariantsAreNotActivatedAgainAndRemainingSizesMergeWithoutLosingLocation() {
-        val shop=Product(1,"CPVC Coupler","Prince","CPVC · Plumbing",listOf("socket"),zone="A2",locationNote="Top shelf",variants=listOf(ProductVariant(1,"15 mm","piece",900,123,first.id)))
+        val shop=Product(1,"CPVC Coupler","Prince","CPVC · Plumbing",listOf("socket"),photoPath="photos/my-photo.jpg",zone="A2",locationNote="Top shelf",variants=listOf(ProductVariant(1,"15 mm","piece",900,123,first.id)))
         assertTrue(referenceDrafts(catalog,setOf(first.id),listOf(shop)).isEmpty())
         val draft=referenceDrafts(catalog,setOf(first.id,second.id),listOf(shop)).single()
         assertEquals(1L,draft.targetId)
         assertEquals(second.id,draft.variants.single().sourceReferenceId)
         assertEquals("A2",draft.zone)
+        assertEquals("photos/my-photo.jpg",draft.photoPath)
         assertEquals("socket",draft.aliases)
         assertEquals(first.id,shop.draft().variants.single().sourceReferenceId)
     }

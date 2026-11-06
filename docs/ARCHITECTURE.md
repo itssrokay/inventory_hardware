@@ -31,7 +31,7 @@ flowchart LR
 | Android Keystore | Encrypts the phone’s API key; no key is bundled in the APK. | [source](../app/src/main/java/com/shopkhata/inventory/security/KeyStore.kt) |
 | App-private photos + ZIP | Photos and version 2 ZIP backups retain reference links. Validated restore accepts versions 1 and 2; no static reference duplication or credentials. | [source](../app/src/main/java/com/shopkhata/inventory/backup/BackupManager.kt) |
 | OpenAI Responses | Receives explicitly submitted text/images for parsing or categorization; query rewriting also receives category names. | External service |
-| Reference JSON + original PDF | Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. | [source](../app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt) |
+| Reference JSON + original PDF | Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority. | [source](../app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt) |
 
 ## Web · the localhost preview
 
@@ -62,7 +62,7 @@ flowchart LR
 | Ignored local key | Loaded from the process environment or .env.local; never served to browser JavaScript. | [source](../web/server.mjs) |
 | Browser JSON backup | Web-preview-only export and restore; not the Android ZIP format. | [source](../web/public/app.js) |
 | OpenAI Responses | Receives explicitly submitted text/images for parsing or categorization; query rewriting also receives category names. | External service |
-| Separate reference library | Reads shared source JSON and local PDF/page images through fixed allowlisted routes. Selected variants require blank-price/unit review; only confirmed shop variants enter IndexedDB. | [source](../web/public/reference.js) |
+| Separate reference library | Reads shared source JSON and local PDF/page images through fixed allowlisted routes. Selected variants require blank-price/unit review; only confirmed shop variants enter IndexedDB. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority. | [source](../web/public/reference.js) |
 
 ## Boundaries worth keeping
 
@@ -75,6 +75,7 @@ flowchart LR
 - Images are cropped locally and sent to AI only for an explicit Review items or Suggest category request. Missing or unreadable prices must be reviewed and entered before saving.
 - Discount percentages are a one-time calculator, not a persistent pricing rule: only the rounded net selling price is saved. Reopening an editor starts from that price without reapplying the discount.
 - A manufacturer pricelist never proves shop stock or selling prices. Reference variants start unconfirmed and hidden from shop search. Only explicit owner confirmation creates carried shop variants; quantities remain unknown. See ADR-007.
+- Display languages never rewrite catalog facts. Shared local translations and aliases preserve source IDs, technical specifications and canonical units. Original source text and custom item names remain available. See ADR-008.
 
 ## Decisions
 
@@ -85,3 +86,4 @@ flowchart LR
 - [ADR-005: Route image entry and AI categories through editable review](decisions/ADR-005.md)
 - [ADR-006: Use discounts as a one-time selling-price calculator](decisions/ADR-006.md)
 - [ADR-007: Keep manufacturer references separate from carried shop variants](decisions/ADR-007.md)
+- [ADR-008: Display languages and source pictures without changing catalog facts](decisions/ADR-008.md)

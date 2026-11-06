@@ -27,6 +27,18 @@ class PhotoStore(private val context: Context) {
         }
     }
     suspend fun import(uri: Uri): String = save(load(uri))
+    suspend fun reference(asset: String): String = withContext(Dispatchers.IO) {
+        require(validReferenceImage(asset)) { "Invalid reference image." }
+        val relative="photos/reference-${asset.substringAfterLast('/').substringBefore('.')}.jpg"
+        val file=File(context.filesDir,relative)
+        if (!file.exists()) {
+            val image=requireNotNull(context.assets.open(asset).use { BitmapFactory.decodeStream(it) })
+            try {file.parentFile?.mkdirs();file.outputStream().use { check(image.compress(Bitmap.CompressFormat.JPEG,90,it)) }}
+            catch(error:Exception) {file.delete();throw error}
+            finally {image.recycle()}
+        }
+        relative
+    }
     /** Consumes the bitmap after writing the reviewed crop, never the original photo. */
     suspend fun save(bitmap: Bitmap): String = withContext(Dispatchers.IO) {
         val relative = "photos/${UUID.randomUUID()}.jpg"

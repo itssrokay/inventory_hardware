@@ -54,8 +54,8 @@ fun ImageCropDialog(uri: Uri, dismiss: () -> Unit, confirm: (Bitmap) -> Unit) {
     Dialog(onDismissRequest = dismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxWidth().padding(16.dp), shape = MaterialTheme.shapes.large) {
             Column(Modifier.padding(18.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Crop your image", style = MaterialTheme.typography.titleLarge)
-                Text("Drag to position, pinch or use Zoom. Only this crop is used.", style = MaterialTheme.typography.bodySmall)
+                Text(ui("Crop your image"), style = MaterialTheme.typography.titleLarge)
+                Text(ui("Drag to position, pinch or use Zoom. Only this crop is used."), style = MaterialTheme.typography.bodySmall)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 bitmap?.let { image ->
                     val ratio = aspect ?: (image.width.toFloat() / image.height)
@@ -67,18 +67,18 @@ fun ImageCropDialog(uri: Uri, dismiss: () -> Unit, confirm: (Bitmap) -> Unit) {
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         listOf("Original" to null, "Square" to 1f, "4:3" to 4f/3f).forEach { (label, value) ->
-                            FilterChip(selected = aspect == value, onClick = { aspect = value; reset() }, label = { Text(label) })
+                            FilterChip(selected = aspect == value, onClick = { aspect = value; reset() }, label = { Text(ui(label)) })
                         }
                     }
-                    Text("Zoom ${"%.1f".format(zoom)}×", style = MaterialTheme.typography.bodySmall)
+                    Text(ui("Zoom ${"%.1f".format(zoom)}×"), style = MaterialTheme.typography.bodySmall)
                     Slider(value = zoom, onValueChange = { move(Offset.Zero, it) }, valueRange = 1f..5f, modifier = Modifier.testTag("crop-zoom"))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { bitmap = Bitmap.createBitmap(image, 0, 0, image.width, image.height, Matrix().apply { postRotate(90f) }, true); reset() }) { Text("Rotate 90°") }
-                        TextButton(onClick = { reset() }) { Text("Reset crop") }
+                        TextButton(onClick = { bitmap = Bitmap.createBitmap(image, 0, 0, image.width, image.height, Matrix().apply { postRotate(90f) }, true); reset() }) { Text(ui("Rotate 90°")) }
+                        TextButton(onClick = { reset() }) { Text(ui("Reset crop")) }
                     }
                 } ?: run { if (error == null) CircularProgressIndicator(); Unit }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = dismiss) { Text("Cancel") }
+                    TextButton(onClick = dismiss) { Text(ui("Cancel")) }
                     Button(enabled = bitmap != null && frame.width > 0 && frame.height > 0, onClick = {
                         val image = bitmap ?: return@Button
                         val region = cropRegion(image.width, image.height, frame.width.toDouble(), frame.height.toDouble(), zoom.toDouble(), pan.x.toDouble(), pan.y.toDouble())
@@ -86,7 +86,7 @@ fun ImageCropDialog(uri: Uri, dismiss: () -> Unit, confirm: (Bitmap) -> Unit) {
                         val result = requireNotNull(cropped.copy(Bitmap.Config.ARGB_8888, false))
                         if (cropped !== image) cropped.recycle()
                         confirm(result)
-                    }) { Text("Use crop") }
+                    }) { Text(ui("Use crop")) }
                 }
             }
         }

@@ -24,6 +24,14 @@ The Prince library is separate from the main shop catalog in Android and the loc
 
 The standalone original PDF and rendered browser page images are excluded from Git. The Android APK bundles a copy of the original PDF for offline browsing and zoom; publishing the APK also distributes that copy. The web source viewer displays pages rendered directly from that PDF and also offers the original download. None of this import uses OpenAI or sends the PDF to a service.
 
+## Product pictures and language modes
+
+A source-hash-bound `reference/images.json` manifest maps 520 product-table illustrations to 2,404 variants. Pictures are extracted only when they belong to the matching table; no nearby or unrelated picture is borrowed. Where no picture can be matched, the interface says so. Images illustrate the product family and may differ in size or colour from an individual variant.
+
+Reference review uses the matched image if the existing shop item has no custom photo. Reviewed pictures are copied into ordinary photo storage and back up with the shop item; older linked items can also display a bundled fallback. Owner photos take priority. None of this selects stock or saves a selling price.
+
+English, हिन्दी and Hinglish modes change controls and familiar product names locally. Original names and source fields remain visible; codes, dimensions, stored selling units and prices do not change. Display and voice languages are separate preferences.
+
 ## Reproduce the import
 
 The importer never reads or writes the Room or IndexedDB shop catalog. Running it again with the same source produces the same IDs and bytes. It refuses to overwrite a destination associated with a different PDF hash; choose a separate output for another source.
@@ -38,6 +46,7 @@ Outputs:
 
 - `app/src/main/assets/reference/prince-2026.json`: shared, versioned reference data.
 - `docs/reference-import-audit.json`: code coverage by page and duplicate-code contexts.
+- `app/src/main/assets/reference/images.json` and `products/`: matched source picture provenance and thumbnails, created by `scripts/extract_reference_images.py`.
 - `app/src/main/assets/reference/prince-2026.pdf`: local original, ignored by Git.
 - `build/reference-pages/prince-2026/`: local browser page images, ignored by Git.
 

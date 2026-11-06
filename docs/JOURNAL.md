@@ -2,6 +2,12 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-06 · DECISION · Display languages and source pictures without changing catalog facts
+
+`ADR-008` — English, Hindi and Hinglish are local presentation choices; manufacturer pictures are source-bound illustrations. Neither changes saved names, source IDs, units, prices or stock status.
+
+[ADR-008: Display languages and source pictures without changing catalog facts](decisions/ADR-008.md) · Accepted
+
 ## 2026-11-06 · DONE · Published Dukaan 0.3.0 with a verified direct APK download
 
 `WORK-007` — The latest Android test build and project source are now public on GitHub. The README’s first link downloads 0.3.0.

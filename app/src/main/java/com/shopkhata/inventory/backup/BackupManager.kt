@@ -23,6 +23,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
         val (rows, histories, misses) = db.withTransaction { Triple(dao.all(), dao.allHistory(), dao.allMisses()) }
         val root = JSONObject().put("version", 2).put("exported_at", System.currentTimeMillis())
             .put("tax_label", context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("tax_label", "GST not specified"))
+            .put("ui_language",context.getSharedPreferences("settings",Context.MODE_PRIVATE).getString("ui_language","en"))
             .put("items", JSONArray(rows.map { row ->
                 val item = row.item
                 JSONObject().put("id", item.id).put("name", item.name).put("brand", item.brand).put("category", item.category)
@@ -140,7 +141,8 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                 }
             }
             val tax = json.optString("tax_label", "GST not specified")
-            context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putString("tax_label", tax).apply()
+            val uiLanguage=json.optString("ui_language","en").takeIf {it in listOf("en","hi","hinglish")} ?: "en"
+            context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putString("tax_label", tax).putString("ui_language",uiLanguage).apply()
             rows.size
         } finally { if (!committed) directory.deleteRecursively() }
     }

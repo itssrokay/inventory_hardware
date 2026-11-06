@@ -25,6 +25,8 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     private val backups = BackupManager(application, db)
     private val photos = PhotoStore(application)
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val uiTranslations=UiTranslationStore.load(application)
+    val uiLanguage=MutableStateFlow(prefs.getString("ui_language","en")!!.takeIf {it in listOf("en","hi","hinglish")} ?: "en")
     val products = repository.products.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val misses = repository.misses.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val query = MutableStateFlow("")
@@ -49,12 +51,12 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     private val messagesChannel = Channel<String>(Channel.BUFFERED)
     val messages = messagesChannel.receiveAsFlow()
     val hits = combine(products, query.debounce(100), rewrites, searchCategory) { products, query, rewrite, category ->
-        val brands = searchIntent(products, query).brands
+        val brands = searchIntent(products, uiTranslations.searchQuery(query)).brands
         Triple(products.filter { (category == null || it.category == category) && (brands.isEmpty() || normalize(it.brand) in brands) }, query, rewrite)
     }
         .mapLatest { (catalog, query, rewrite) -> withContext(Dispatchers.Default) {
-            val local = repository.search(catalog, query)
-            val brands = searchIntent(catalog, query).brands
+            val local = repository.search(catalog, uiTranslations.searchQuery(query))
+            val brands = searchIntent(catalog, uiTranslations.searchQuery(query)).brands
             val constrained = catalog.filter { brands.isEmpty() || normalize(it.brand) in brands }
             if (rewrite?.first == query) (local + rewrite.second.flatMap { repository.search(constrained, it) }).distinctBy { it.product.id }.sortedByDescending { it.score }.take(10)
             else local
@@ -86,20 +88,24 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun selectReference(id: String, selected: Boolean) {
         referenceSelected.value = if (selected) referenceSelected.value + id else referenceSelected.value - id
     }
-    fun reviewReferences() {
-        if (busy.value) return
-        if (review.value.isNotEmpty()) { message("Save or discard your current review before activating reference variants."); return }
-        val catalog = referenceCatalog.value ?: return
+    fun reviewReferences() = operation {
+        if (review.value.isNotEmpty()) { message("Save or discard your current review before activating reference variants."); return@operation }
+        val catalog = referenceCatalog.value ?: return@operation
         val drafts = referenceDrafts(catalog, referenceSelected.value, products.value)
-        if (drafts.isEmpty()) { message("Select variants that you carry first."); return }
+        if (drafts.isEmpty()) { message("Select variants that you carry first."); return@operation }
         fullEdit = false
-        review.value = drafts
+        review.value = drafts.map { draft ->
+            val asset=catalog.imageFor(draft.variants.firstOrNull()?.sourceReferenceId)
+            if(draft.photoPath==null && asset!=null) draft.copy(photoPath=photos.reference(asset)) else draft
+        }
         warnings.value = listOf("You are confirming that you carry these selected variants. Confirm every specification, selling unit, price and tax label. Source list prices remain separate. No stock quantity is recorded.")
         tab.value = 1
     }
-    fun edit(product: Product) {
-        if (busy.value) return
-        fullEdit = true; review.value = listOf(product.draft()); warnings.value = emptyList(); tab.value = 1
+    fun edit(product: Product) = operation {
+        val draft=product.draft()
+        val asset=referenceCatalog.value?.imageFor(product.variants.firstOrNull { it.sourceReferenceId!=null }?.sourceReferenceId)
+        val photo=if(draft.photoPath==null&&asset!=null) runCatching { photos.reference(asset) }.getOrNull() else draft.photoPath
+        fullEdit = true; review.value = listOf(draft.copy(photoPath=photo)); warnings.value = emptyList(); tab.value = 1
     }
     fun updateDraft(index: Int, value: ItemDraft) { review.value = review.value.toMutableList().also { it[index] = value } }
     fun removeDraft(index: Int) { review.value = review.value.filterIndexed { i, _ -> i != index } }
@@ -151,7 +157,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             rewriting.value = true
             try {
-                val local = repository.search(products.value, text)
+                val local = repository.search(products.value, uiTranslations.searchQuery(text))
                 if (local.isEmpty()) repository.logMiss(text)
                 if ((local.isEmpty() || local.first().score < .72) && keyConfigured.value) {
                     val phrases = ai.rewrite(text, products.value.map { it.category }.distinct())
@@ -169,6 +175,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun restore(uri: Uri) = operation {
         val count = backups.restore(uri)
         taxLabel.value = prefs.getString("tax_label", "GST not specified")!!
+        uiLanguage.value=prefs.getString("ui_language","en")!!.takeIf {it in listOf("en","hi","hinglish")} ?: "en"
         query.value = ""; searchCategory.value = null; rewrites.value = null; review.value = emptyList(); warnings.value = emptyList(); fullEdit = false; tab.value = 0
         message("Restored $count items, photos and history.")
     }
@@ -178,6 +185,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun forgetKey() { keys.clear(); keyConfigured.value = false; message("OpenAI key removed from this phone.") }
     fun tax(value: String) { taxLabel.value = value; prefs.edit().putString("tax_label", value).apply() }
     fun voiceLanguage(value: String) { language.value = value; prefs.edit().putString("language", value).apply() }
+    fun displayLanguage(value:String) {require(value in listOf("en","hi","hinglish"));uiLanguage.value=value;prefs.edit().putString("ui_language",value).apply()}
     fun setModel(value: String) {
         if (!Regex("[a-zA-Z0-9._-]{1,100}").matches(value.trim())) { message("Enter a valid model ID."); return }
         model.value = value.trim(); prefs.edit().putString("model", value.trim()).apply(); message("Model updated.")

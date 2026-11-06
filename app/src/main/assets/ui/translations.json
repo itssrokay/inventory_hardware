@@ -1,0 +1,1784 @@
+{
+  "version": 1,
+  "languages": [
+    "en",
+    "hi",
+    "hinglish"
+  ],
+  "labels": {
+    "Catalog": {
+      "hi": "दुकान की सूची",
+      "hinglish": "Dukaan ki list"
+    },
+    "Reference": {
+      "hi": "रेफरेंस",
+      "hinglish": "Reference"
+    },
+    "Reference library": {
+      "hi": "रेफरेंस सूची",
+      "hinglish": "Reference list"
+    },
+    "Reference library.": {
+      "hi": "रेफरेंस सूची।",
+      "hinglish": "Reference list."
+    },
+    "Add": {
+      "hi": "जोड़ें",
+      "hinglish": "Jodein"
+    },
+    "Add items": {
+      "hi": "सामान जोड़ें",
+      "hinglish": "Samaan jodein"
+    },
+    "Add item": {
+      "hi": "सामान जोड़ें",
+      "hinglish": "Samaan jodein"
+    },
+    "Add an item": {
+      "hi": "सामान जोड़ें",
+      "hinglish": "Samaan jodein"
+    },
+    "Add an item manually": {
+      "hi": "खुद सामान जोड़ें",
+      "hinglish": "Khud samaan jodein"
+    },
+    "Add your first item": {
+      "hi": "पहला सामान जोड़ें",
+      "hinglish": "Pehla samaan jodein"
+    },
+    "Add another size": {
+      "hi": "एक और साइज़ जोड़ें",
+      "hinglish": "Ek aur size jodein"
+    },
+    "Price history": {
+      "hi": "पुराने दाम",
+      "hinglish": "Purane daam"
+    },
+    "History": {
+      "hi": "पुराने दाम",
+      "hinglish": "Purane daam"
+    },
+    "Settings": {
+      "hi": "सेटिंग्स",
+      "hinglish": "Settings"
+    },
+    "Settings & backup": {
+      "hi": "सेटिंग्स और बैकअप",
+      "hinglish": "Settings aur backup"
+    },
+    "Missed searches": {
+      "hi": "न मिले सामान की खोज",
+      "hinglish": "Na mile samaan ki khoj"
+    },
+    "All items": {
+      "hi": "सभी सामान",
+      "hinglish": "Saara samaan"
+    },
+    "All product families": {
+      "hi": "सभी प्रकार के उत्पाद",
+      "hinglish": "Sabhi product families"
+    },
+    "All reference variants": {
+      "hi": "सभी रेफरेंस साइज़",
+      "hinglish": "Saare reference sizes"
+    },
+    "Stock unconfirmed": {
+      "hi": "स्टॉक की पुष्टि नहीं हुई",
+      "hinglish": "Stock abhi confirm nahin"
+    },
+    "Stock unconfirmed by default": {
+      "hi": "स्टॉक अपने-आप पक्का नहीं माना जाता",
+      "hinglish": "Stock apne aap confirm nahin hota"
+    },
+    "Stock unconfirmed · reference only": {
+      "hi": "स्टॉक की पुष्टि नहीं · केवल रेफरेंस",
+      "hinglish": "Stock confirm nahin · sirf reference"
+    },
+    "Carried · shop price confirmed": {
+      "hi": "दुकान में रखा जाता है · दाम पक्का",
+      "hinglish": "Dukaan mein rakhte hain · daam confirm"
+    },
+    "Carried · shop price confirmed · quantity unknown": {
+      "hi": "दुकान में रखा जाता है · दाम पक्का · मात्रा अज्ञात",
+      "hinglish": "Dukaan mein rakhte hain · daam confirm · quantity maloom nahin"
+    },
+    "Review carried products": {
+      "hi": "दुकान वाले सामान की जाँच करें",
+      "hinglish": "Dukaan wale samaan check karein"
+    },
+    "Review carried products →": {
+      "hi": "दुकान वाले सामान की जाँच करें →",
+      "hinglish": "Dukaan wale samaan check karein →"
+    },
+    "Clear selection": {
+      "hi": "चयन हटाएँ",
+      "hinglish": "Selection hatayein"
+    },
+    "Clear": {
+      "hi": "हटाएँ",
+      "hinglish": "Hatayein"
+    },
+    "Search reference": {
+      "hi": "रेफरेंस में खोजें",
+      "hinglish": "Reference mein khojein"
+    },
+    "Search reference · name, size or code": {
+      "hi": "रेफरेंस खोजें · नाम, साइज़ या कोड",
+      "hinglish": "Reference khojein · naam, size ya code"
+    },
+    "Search catalog": {
+      "hi": "दुकान में खोजें",
+      "hinglish": "Dukaan mein khojein"
+    },
+    "Find an item": {
+      "hi": "सामान खोजें",
+      "hinglish": "Samaan khojein"
+    },
+    "Speak": {
+      "hi": "बोलें",
+      "hinglish": "Bolein"
+    },
+    "Speak a search": {
+      "hi": "बोलकर खोजें",
+      "hinglish": "Bolkar khojein"
+    },
+    "Speak items": {
+      "hi": "सामान बोलें",
+      "hinglish": "Samaan bolein"
+    },
+    "Smart search": {
+      "hi": "स्मार्ट खोज",
+      "hinglish": "Smart khoj"
+    },
+    "Search works offline": {
+      "hi": "खोज बिना इंटरनेट चलती है",
+      "hinglish": "Khoj bina internet chalti hai"
+    },
+    "Local search works offline": {
+      "hi": "खोज बिना इंटरनेट चलती है",
+      "hinglish": "Khoj bina internet chalti hai"
+    },
+    "Natural brand & item filters": {
+      "hi": "नाम और ब्रांड से छाँटें",
+      "hinglish": "Naam aur brand se chhantein"
+    },
+    "Try “Prince only” or “sockets from Prince only”": {
+      "hi": "जैसे “Prince only” या “प्रिंस के सॉकेट”",
+      "hinglish": "Jaise “Prince only” ya “Prince ke sockets”"
+    },
+    "Try coupler, 25 mm or SIM107608": {
+      "hi": "कपलर, 25 mm या SIM107608 खोजें",
+      "hinglish": "Coupler, 25 mm ya SIM107608 khojein"
+    },
+    "Product family": {
+      "hi": "उत्पाद का प्रकार",
+      "hinglish": "Product family"
+    },
+    "Status": {
+      "hi": "स्थिति",
+      "hinglish": "Status"
+    },
+    "Read original PDF": {
+      "hi": "मूल PDF पढ़ें",
+      "hinglish": "Asli PDF padhein"
+    },
+    "Read original PDF ↗": {
+      "hi": "मूल PDF पढ़ें ↗",
+      "hinglish": "Asli PDF padhein ↗"
+    },
+    "Read source page": {
+      "hi": "मूल पन्ना पढ़ें",
+      "hinglish": "Asli panna padhein"
+    },
+    "Read original page ↗": {
+      "hi": "मूल पन्ना पढ़ें ↗",
+      "hinglish": "Asli panna padhein ↗"
+    },
+    "Inspect source page ↗": {
+      "hi": "मूल पन्ना जाँचें ↗",
+      "hinglish": "Asli panna dekhein ↗"
+    },
+    "Source page": {
+      "hi": "मूल पन्ना",
+      "hinglish": "Asli panna"
+    },
+    "Show more groups": {
+      "hi": "और उत्पाद दिखाएँ",
+      "hinglish": "Aur products dikhayein"
+    },
+    "Choose sizes ↓": {
+      "hi": "साइज़ चुनें ↓",
+      "hinglish": "Size chunein ↓"
+    },
+    "Hide variants": {
+      "hi": "साइज़ छिपाएँ",
+      "hinglish": "Sizes chhupayein"
+    },
+    "Show exact source row": {
+      "hi": "मूल विवरण दिखाएँ",
+      "hinglish": "Asli details dikhayein"
+    },
+    "Hide source fields": {
+      "hi": "मूल विवरण छिपाएँ",
+      "hinglish": "Asli details chhupayein"
+    },
+    "Exact source fields & pack details": {
+      "hi": "मूल विवरण और पैक की जानकारी",
+      "hinglish": "Asli details aur packing"
+    },
+    "No picture in source table": {
+      "hi": "इस तालिका में चित्र नहीं है",
+      "hinglish": "Is table mein photo nahin hai"
+    },
+    "No product picture printed in this table.": {
+      "hi": "इस तालिका में उत्पाद का चित्र नहीं है।",
+      "hinglish": "Is table mein product ki photo nahin hai."
+    },
+    "Manufacturer illustration; size or colour may vary.": {
+      "hi": "कंपनी का चित्र; साइज़ या रंग अलग हो सकता है।",
+      "hinglish": "Company ki photo; size ya rang alag ho sakta hai."
+    },
+    "No resolved source price. Inspect the original page.": {
+      "hi": "मूल दाम स्पष्ट नहीं है। मूल पन्ना देखें।",
+      "hinglish": "Asli daam saaf nahin hai. Asli panna dekhein."
+    },
+    "Loading local reference library…": {
+      "hi": "रेफरेंस सूची खुल रही है…",
+      "hinglish": "Reference list khul rahi hai…"
+    },
+    "No reference variants match": {
+      "hi": "कोई रेफरेंस साइज़ नहीं मिला",
+      "hinglish": "Koi reference size nahin mila"
+    },
+    "Try a code, a size or another family.": {
+      "hi": "कोड, साइज़ या दूसरा प्रकार खोजें।",
+      "hinglish": "Code, size ya doosri family khojein."
+    },
+    "Item name *": {
+      "hi": "सामान का नाम *",
+      "hinglish": "Samaan ka naam *"
+    },
+    "Item name": {
+      "hi": "सामान का नाम",
+      "hinglish": "Samaan ka naam"
+    },
+    "Brand": {
+      "hi": "ब्रांड",
+      "hinglish": "Brand"
+    },
+    "Category": {
+      "hi": "श्रेणी",
+      "hinglish": "Category"
+    },
+    "Size / spec": {
+      "hi": "साइज़ / विवरण",
+      "hinglish": "Size / details"
+    },
+    "Price (₹) *": {
+      "hi": "बिक्री का दाम (₹) *",
+      "hinglish": "Bechne ka daam (₹) *"
+    },
+    "Price (₹)": {
+      "hi": "बिक्री का दाम (₹)",
+      "hinglish": "Bechne ka daam (₹)"
+    },
+    "Selling price (₹)": {
+      "hi": "बिक्री का दाम (₹)",
+      "hinglish": "Bechne ka daam (₹)"
+    },
+    "Per unit": {
+      "hi": "किस इकाई का दाम",
+      "hinglish": "Kis unit ka daam"
+    },
+    "Selling unit": {
+      "hi": "बिक्री की इकाई",
+      "hinglish": "Bechne ki unit"
+    },
+    "Choose unit": {
+      "hi": "इकाई चुनें",
+      "hinglish": "Unit chunein"
+    },
+    "Choose selling unit": {
+      "hi": "बिक्री की इकाई चुनें",
+      "hinglish": "Bechne ki unit chunein"
+    },
+    "Discount (%)": {
+      "hi": "छूट (%)",
+      "hinglish": "Chhoot (%)"
+    },
+    "Discount (%) — optional": {
+      "hi": "छूट (%) — चाहें तो भरें",
+      "hinglish": "Chhoot (%) — chahein to bharein"
+    },
+    "Optional · applied once": {
+      "hi": "चाहें तो भरें · एक बार लागू",
+      "hinglish": "Chahein to bharein · ek baar lagegi"
+    },
+    "Save price": {
+      "hi": "दाम सेव करें",
+      "hinglish": "Daam save karein"
+    },
+    "Update selling price": {
+      "hi": "बिक्री का दाम बदलें",
+      "hinglish": "Bechne ka daam badlein"
+    },
+    "Confirmed shop price · reference linked": {
+      "hi": "दुकान का पक्का दाम · रेफरेंस जुड़ा है",
+      "hinglish": "Dukaan ka pakka daam · reference juda hai"
+    },
+    "Previous price": {
+      "hi": "पहला दाम",
+      "hinglish": "Pehla daam"
+    },
+    "New price": {
+      "hi": "नया दाम",
+      "hinglish": "Naya daam"
+    },
+    "Changed": {
+      "hi": "बदला गया",
+      "hinglish": "Badla gaya"
+    },
+    "Item & size": {
+      "hi": "सामान और साइज़",
+      "hinglish": "Samaan aur size"
+    },
+    "View price history": {
+      "hi": "पुराने दाम देखें",
+      "hinglish": "Purane daam dekhein"
+    },
+    "No price changes yet.": {
+      "hi": "अभी दाम नहीं बदले गए।",
+      "hinglish": "Abhi daam nahin badle gaye."
+    },
+    "No price changes yet": {
+      "hi": "अभी दाम नहीं बदले गए",
+      "hinglish": "Abhi daam nahin badle gaye"
+    },
+    "Other names": {
+      "hi": "दूसरे नाम",
+      "hinglish": "Doosre naam"
+    },
+    "Other names, separated by commas": {
+      "hi": "दूसरे नाम, कॉमा से अलग करें",
+      "hinglish": "Doosre naam, comma se alag karein"
+    },
+    "Separate with commas": {
+      "hi": "कॉमा से अलग करें",
+      "hinglish": "Comma se alag karein"
+    },
+    "Optional shelf location": {
+      "hi": "चाहें तो रखने की जगह बताएँ",
+      "hinglish": "Chahein to rakhne ki jagah batayein"
+    },
+    "Zone": {
+      "hi": "हिस्सा / रैक",
+      "hinglish": "Hissa / rack"
+    },
+    "Location note": {
+      "hi": "जगह की जानकारी",
+      "hinglish": "Jagah ki details"
+    },
+    "Add a photo": {
+      "hi": "फोटो जोड़ें",
+      "hinglish": "Photo jodein"
+    },
+    "Add photo": {
+      "hi": "फोटो जोड़ें",
+      "hinglish": "Photo jodein"
+    },
+    "Change photo": {
+      "hi": "फोटो बदलें",
+      "hinglish": "Photo badlein"
+    },
+    "Crop photo": {
+      "hi": "फोटो काटें / घुमाएँ",
+      "hinglish": "Photo crop / rotate karein"
+    },
+    "Crop input image": {
+      "hi": "भेजने वाली फोटो काटें",
+      "hinglish": "Bhejne wali photo crop karein"
+    },
+    "Crop image": {
+      "hi": "फोटो काटें",
+      "hinglish": "Photo crop karein"
+    },
+    "Remove image": {
+      "hi": "फोटो हटाएँ",
+      "hinglish": "Photo hatayein"
+    },
+    "Add image to read items": {
+      "hi": "सामान पढ़ने के लिए फोटो जोड़ें",
+      "hinglish": "Samaan padhne ke liye photo jodein"
+    },
+    "Change input image": {
+      "hi": "भेजने वाली फोटो बदलें",
+      "hinglish": "Bhejne wali photo badlein"
+    },
+    "Review items": {
+      "hi": "सामान की जाँच करें",
+      "hinglish": "Samaan check karein"
+    },
+    "Discard review": {
+      "hi": "जाँच रद्द करें",
+      "hinglish": "Review radd karein"
+    },
+    "Discard this review": {
+      "hi": "यह जाँच रद्द करें",
+      "hinglish": "Yeh review radd karein"
+    },
+    "Nothing is saved until you confirm.": {
+      "hi": "आपकी पुष्टि से पहले कुछ सेव नहीं होगा।",
+      "hinglish": "Aapke confirm karne se pehle kuch save nahin hoga."
+    },
+    "Suggest category & aliases": {
+      "hi": "श्रेणी और दूसरे नाम सुझाएँ",
+      "hinglish": "Category aur doosre naam sujhayein"
+    },
+    "Understanding…": {
+      "hi": "समझ रहे हैं…",
+      "hinglish": "Samajh rahe hain…"
+    },
+    "Saving…": {
+      "hi": "सेव हो रहा है…",
+      "hinglish": "Save ho raha hai…"
+    },
+    "Suggesting category…": {
+      "hi": "श्रेणी ढूँढ रहे हैं…",
+      "hinglish": "Category dhoondh rahe hain…"
+    },
+    "Understanding your search…": {
+      "hi": "आपकी खोज समझ रहे हैं…",
+      "hinglish": "Aapki khoj samajh rahe hain…"
+    },
+    "Enter a valid price and discount": {
+      "hi": "सही दाम और छूट भरें",
+      "hinglish": "Sahi daam aur chhoot bharein"
+    },
+    "Enter a valid price and a discount from 0 to 100%.": {
+      "hi": "सही दाम और 0 से 100% के बीच छूट भरें।",
+      "hinglish": "Sahi daam aur 0 se 100% ke beech chhoot bharein."
+    },
+    "Choose a valid price unit.": {
+      "hi": "बिक्री की सही इकाई चुनें।",
+      "hinglish": "Bechne ki sahi unit chunein."
+    },
+    "Enter an item name.": {
+      "hi": "सामान का नाम भरें।",
+      "hinglish": "Samaan ka naam bharein."
+    },
+    "Enter a name for every item.": {
+      "hi": "हर सामान का नाम भरें।",
+      "hinglish": "Har samaan ka naam bharein."
+    },
+    "Cancel": {
+      "hi": "रद्द करें",
+      "hinglish": "Radd karein"
+    },
+    "Confirm": {
+      "hi": "पक्का करें",
+      "hinglish": "Pakka karein"
+    },
+    "Close": {
+      "hi": "बंद करें",
+      "hinglish": "Band karein"
+    },
+    "Close source": {
+      "hi": "मूल पन्ना बंद करें",
+      "hinglish": "Asli panna band karein"
+    },
+    "Previous": {
+      "hi": "पिछला",
+      "hinglish": "Pichhla"
+    },
+    "Next": {
+      "hi": "अगला",
+      "hinglish": "Agla"
+    },
+    "Crop your image": {
+      "hi": "फोटो का हिस्सा चुनें",
+      "hinglish": "Photo ka hissa chunein"
+    },
+    "Use crop": {
+      "hi": "यह हिस्सा रखें",
+      "hinglish": "Yeh hissa rakhein"
+    },
+    "Rotate 90°": {
+      "hi": "90° घुमाएँ",
+      "hinglish": "90° ghumayein"
+    },
+    "Reset crop": {
+      "hi": "फिर से शुरू करें",
+      "hinglish": "Phir se shuru karein"
+    },
+    "Original": {
+      "hi": "मूल आकार",
+      "hinglish": "Asli aakaar"
+    },
+    "Square": {
+      "hi": "चौकोर",
+      "hinglish": "Chaukor"
+    },
+    "4:3": {
+      "hi": "4:3",
+      "hinglish": "4:3"
+    },
+    "Zoom to read · drag to move": {
+      "hi": "पढ़ने के लिए बड़ा करें · खिसकाने के लिए खींचें",
+      "hinglish": "Padhne ke liye zoom karein · khiskane ke liye drag karein"
+    },
+    "Drag to position, pinch or use Zoom. Only this crop is used.": {
+      "hi": "जगह बदलने के लिए खींचें, चुटकी से या ज़ूम से बड़ा करें। केवल चुना हिस्सा इस्तेमाल होगा।",
+      "hinglish": "Jagah badalne ke liye drag karein, pinch ya Zoom se bada karein. Sirf chuna hissa use hoga."
+    },
+    "App language": {
+      "hi": "ऐप की भाषा",
+      "hinglish": "App ki bhasha"
+    },
+    "Display language": {
+      "hi": "दिखाने की भाषा",
+      "hinglish": "Dikhane ki bhasha"
+    },
+    "Voice language": {
+      "hi": "बोलकर खोजने की भाषा",
+      "hinglish": "Bolkar khojne ki bhasha"
+    },
+    "Display language only; your saved names and original source stay unchanged.": {
+      "hi": "यह केवल ऐप की भाषा बदलता है। सेव किए नाम और मूल विवरण नहीं बदलते।",
+      "hinglish": "Yeh sirf app ki bhasha badalta hai. Save kiye naam aur asli details nahin badalti."
+    },
+    "Hindi and Hinglish speech use Hindi recognition.": {
+      "hi": "हिन्दी और हिंग्लिश बोलने के लिए हिन्दी पहचान चुनें।",
+      "hinglish": "Hindi aur Hinglish bolne ke liye Hindi voice chunein."
+    },
+    "Prices & voice": {
+      "hi": "दाम और बोलकर खोज",
+      "hinglish": "Daam aur voice"
+    },
+    "Price convention": {
+      "hi": "दाम में GST की स्थिति",
+      "hinglish": "Daam mein GST ki sthiti"
+    },
+    "GST not specified": {
+      "hi": "GST की जानकारी नहीं",
+      "hinglish": "GST ki jankari nahin"
+    },
+    "incl. GST": {
+      "hi": "GST सहित",
+      "hinglish": "GST sahit"
+    },
+    "excl. GST": {
+      "hi": "GST अलग",
+      "hinglish": "GST alag"
+    },
+    "How are your selling prices recorded?": {
+      "hi": "आपके बिक्री के दाम में GST कैसे दर्ज है?",
+      "hinglish": "Bechne ke daam mein GST kaise darj hai?"
+    },
+    "Keep your catalog safe": {
+      "hi": "अपनी सूची सुरक्षित रखें",
+      "hinglish": "Apni list surakshit rakhein"
+    },
+    "Keep a copy safe": {
+      "hi": "एक कॉपी सुरक्षित रखें",
+      "hinglish": "Ek copy surakshit rakhein"
+    },
+    "Export backup ZIP": {
+      "hi": "ZIP बैकअप निकालें",
+      "hinglish": "ZIP backup nikalein"
+    },
+    "Export preview backup": {
+      "hi": "वेब बैकअप निकालें",
+      "hinglish": "Web backup nikalein"
+    },
+    "Restore from backup": {
+      "hi": "बैकअप वापस लाएँ",
+      "hinglish": "Backup wapas laayein"
+    },
+    "Restore preview backup": {
+      "hi": "वेब बैकअप वापस लाएँ",
+      "hinglish": "Web backup wapas laayein"
+    },
+    "Restore backup": {
+      "hi": "बैकअप वापस लाएँ",
+      "hinglish": "Backup wapas laayein"
+    },
+    "Replace this phone's catalog?": {
+      "hi": "इस फोन की सूची बदलें?",
+      "hinglish": "Is phone ki list badlein?"
+    },
+    "Replace this browser’s catalog?": {
+      "hi": "इस ब्राउज़र की सूची बदलें?",
+      "hinglish": "Is browser ki list badlein?"
+    },
+    "Help your catalog learn": {
+      "hi": "खोज को बेहतर बनाएँ",
+      "hinglish": "Khoj ko behtar banayein"
+    },
+    "Choose item & save as alias": {
+      "hi": "सामान चुनें और दूसरा नाम सेव करें",
+      "hinglish": "Samaan chunein aur doosra naam save karein"
+    },
+    "Choose an item…": {
+      "hi": "सामान चुनें…",
+      "hinglish": "Samaan chunein…"
+    },
+    "Save as another name": {
+      "hi": "दूसरे नाम से सेव करें",
+      "hinglish": "Doosre naam se save karein"
+    },
+    "OpenAI connection": {
+      "hi": "OpenAI कनेक्शन",
+      "hinglish": "OpenAI connection"
+    },
+    "Your local key is ready": {
+      "hi": "आपकी लोकल कुंजी तैयार है",
+      "hinglish": "Aapki local key taiyar hai"
+    },
+    "No local key found": {
+      "hi": "लोकल कुंजी नहीं मिली",
+      "hinglish": "Local key nahin mili"
+    },
+    "Model": {
+      "hi": "मॉडल",
+      "hinglish": "Model"
+    },
+    "Model ID": {
+      "hi": "मॉडल आईडी",
+      "hinglish": "Model ID"
+    },
+    "Save model": {
+      "hi": "मॉडल सेव करें",
+      "hinglish": "Model save karein"
+    },
+    "Save key": {
+      "hi": "कुंजी सेव करें",
+      "hinglish": "Key save karein"
+    },
+    "Remove key": {
+      "hi": "कुंजी हटाएँ",
+      "hinglish": "Key hatayein"
+    },
+    "OpenAI API key": {
+      "hi": "OpenAI API कुंजी",
+      "hinglish": "OpenAI API key"
+    },
+    "API key": {
+      "hi": "API कुंजी",
+      "hinglish": "API key"
+    },
+    "Get the Android app": {
+      "hi": "Android ऐप लें",
+      "hinglish": "Android app lein"
+    },
+    "At your counter": {
+      "hi": "आपकी दुकान पर",
+      "hinglish": "Aapki dukaan par"
+    },
+    "A fresh shelf": {
+      "hi": "अपनी सूची शुरू करें",
+      "hinglish": "Apni list shuru karein"
+    },
+    "Clear sample items": {
+      "hi": "उदाहरण वाला सामान हटाएँ",
+      "hinglish": "Sample samaan hatayein"
+    },
+    "Clear samples": {
+      "hi": "उदाहरण हटाएँ",
+      "hinglish": "Samples hatayein"
+    },
+    "SAMPLE": {
+      "hi": "उदाहरण",
+      "hinglish": "Sample"
+    },
+    "Back to catalog": {
+      "hi": "सूची पर लौटें",
+      "hinglish": "List par lautein"
+    },
+    "Back to catalog →": {
+      "hi": "सूची पर लौटें →",
+      "hinglish": "List par lautein →"
+    },
+    "No local match": {
+      "hi": "दुकान की सूची में नहीं मिला",
+      "hinglish": "Dukaan ki list mein nahin mila"
+    },
+    "No items found": {
+      "hi": "सामान नहीं मिला",
+      "hinglish": "Samaan nahin mila"
+    },
+    "Search another name": {
+      "hi": "दूसरा नाम खोजें",
+      "hinglish": "Doosra naam khojein"
+    },
+    "Find anything.": {
+      "hi": "सामान खोजें।",
+      "hinglish": "Samaan khojein."
+    },
+    "The right price. Right here.": {
+      "hi": "सही दाम। यहीं पर।",
+      "hinglish": "Sahi daam. Yahin par."
+    },
+    "Find any item in seconds, however you call it.": {
+      "hi": "किसी भी नाम से सामान का दाम तुरंत खोजें।",
+      "hinglish": "Kisi bhi naam se samaan ka daam turant khojein."
+    },
+    "Your shop. Your data.": {
+      "hi": "आपकी दुकान। आपका डेटा।",
+      "hinglish": "Aapki dukaan. Aapka data."
+    },
+    "This preview saves your catalog in this browser.": {
+      "hi": "यह प्रीव्यू आपकी सूची इसी ब्राउज़र में रखता है।",
+      "hinglish": "Yeh preview aapki list isi browser mein rakhta hai."
+    },
+    "Running on localhost": {
+      "hi": "इस कंप्यूटर पर चल रहा है",
+      "hinglish": "Is computer par chal raha hai"
+    },
+    "My hardware shop": {
+      "hi": "मेरी हार्डवेयर दुकान",
+      "hinglish": "Meri hardware dukaan"
+    },
+    "Local web preview": {
+      "hi": "लोकल वेब प्रीव्यू",
+      "hinglish": "Local web preview"
+    },
+    "LOCAL PREVIEW": {
+      "hi": "लोकल प्रीव्यू",
+      "hinglish": "Local preview"
+    },
+    "YOUR WORKSPACE": {
+      "hi": "आपकी दुकान",
+      "hinglish": "Aapki dukaan"
+    },
+    "YOUR SHELVES, SEARCHABLE": {
+      "hi": "अपनी दुकान का सामान खोजें",
+      "hinglish": "Apni dukaan ka samaan khojein"
+    },
+    "LESS TYPING. MORE SELLING.": {
+      "hi": "कम लिखें। ज़्यादा बेचें।",
+      "hinglish": "Kam likhein. Zyada bechein."
+    },
+    "SIZES & SELLING PRICES": {
+      "hi": "साइज़ और बिक्री के दाम",
+      "hinglish": "Size aur bechne ke daam"
+    },
+    "QUICK PRICE UPDATE": {
+      "hi": "दाम तुरंत बदलें",
+      "hinglish": "Daam turant badlein"
+    },
+    "A PRICE LIST IS NOT YOUR STOCK LIST": {
+      "hi": "प्राइसलिस्ट आपका स्टॉक नहीं है",
+      "hinglish": "Pricelist aapka stock nahin hai"
+    },
+    "MADE FOR YOUR COUNTER": {
+      "hi": "आपकी दुकान के लिए",
+      "hinglish": "Aapki dukaan ke liye"
+    },
+    "Tell us what’s on the shelf.": {
+      "hi": "दुकान में क्या है, बताएँ।",
+      "hinglish": "Dukaan mein kya hai, batayein."
+    },
+    "Tell us what's on the shelf": {
+      "hi": "दुकान में क्या है, बताएँ",
+      "hinglish": "Dukaan mein kya hai, batayein"
+    },
+    "Stock your catalog": {
+      "hi": "अपनी दुकान की सूची बनाएँ",
+      "hinglish": "Apni dukaan ki list banayein"
+    },
+    "Check before saving": {
+      "hi": "सेव करने से पहले जाँचें",
+      "hinglish": "Save karne se pehle check karein"
+    },
+    "A quick check, then save.": {
+      "hi": "जाँचें, फिर सेव करें।",
+      "hinglish": "Check karein, phir save karein."
+    },
+    "Say it your way": {
+      "hi": "अपने तरीके से बताएँ",
+      "hinglish": "Apne tareeke se batayein"
+    },
+    "Hindi, English or a little of both.": {
+      "hi": "हिन्दी, अंग्रेज़ी या दोनों मिलाकर।",
+      "hinglish": "Hindi, English ya dono milakar."
+    },
+    "Or speak a list of items": {
+      "hi": "या सामान की सूची बोलें",
+      "hinglish": "Ya samaan ki list bolein"
+    },
+    "One sentence.": {
+      "hi": "एक वाक्य।",
+      "hinglish": "Ek vaakya."
+    },
+    "Many sizes.": {
+      "hi": "कई साइज़।",
+      "hinglish": "Kai sizes."
+    },
+    "Prefer to enter it yourself?": {
+      "hi": "खुद भरना चाहेंगे?",
+      "hinglish": "Khud bharna chahenge?"
+    },
+    "Works offline, too.": {
+      "hi": "बिना इंटरनेट भी चलता है।",
+      "hinglish": "Bina internet bhi chalta hai."
+    },
+    "Works without internet. Add a name, size and price.": {
+      "hi": "बिना इंटरनेट चलता है। नाम, साइज़ और दाम भरें।",
+      "hinglish": "Bina internet chalta hai. Naam, size aur daam bharein."
+    },
+    "Nothing matches yet.": {
+      "hi": "अभी कोई सामान नहीं मिला।",
+      "hinglish": "Abhi koi samaan nahin mila."
+    },
+    "You’re all caught up.": {
+      "hi": "अभी कोई खोज बाकी नहीं है।",
+      "hinglish": "Abhi koi khoj baaki nahin hai."
+    },
+    "Preview backup exported. Keep it somewhere safe.": {
+      "hi": "वेब बैकअप बन गया। इसे सुरक्षित रखें।",
+      "hinglish": "Web backup ban gaya. Ise surakshit rakhein."
+    },
+    "Web preview backup restored.": {
+      "hi": "वेब बैकअप वापस आ गया।",
+      "hinglish": "Web backup wapas aa gaya."
+    },
+    "Price updated. Previous price saved in history.": {
+      "hi": "दाम बदल गया। पुराना दाम हिस्ट्री में है।",
+      "hinglish": "Daam badal gaya. Purana daam history mein hai."
+    },
+    "piece": {
+      "hi": "पीस",
+      "hinglish": "piece"
+    },
+    "kg": {
+      "hi": "किलो",
+      "hinglish": "kg"
+    },
+    "ft": {
+      "hi": "फुट",
+      "hinglish": "ft"
+    },
+    "metre": {
+      "hi": "मीटर",
+      "hinglish": "metre"
+    },
+    "box": {
+      "hi": "डिब्बा",
+      "hinglish": "box"
+    },
+    "dozen": {
+      "hi": "दर्जन",
+      "hinglish": "dozen"
+    },
+    "packet": {
+      "hi": "पैकेट",
+      "hinglish": "packet"
+    },
+    "Made for the way you run your shop.": {
+      "hi": "आपकी दुकान के काम करने के तरीके के लिए।",
+      "hinglish": "Aapki dukaan ke kaam karne ke tareeke ke liye."
+    },
+    "Choose only the variants you carry. The rest stay hidden from your shop catalog.": {
+      "hi": "सिर्फ वही साइज़ चुनें जो आप दुकान में रखते हैं। बाकी आपकी दुकान की सूची से अलग रहेंगे।",
+      "hinglish": "Sirf wahi sizes chunein jo aap dukaan mein rakhte hain. Baaki dukaan ki list se alag rahenge."
+    },
+    "Stock unconfirmed. Hidden from your shop catalog until you select the variants you carry and confirm their selling prices. No quantity is assumed.": {
+      "hi": "स्टॉक की पुष्टि नहीं हुई है। सामान और उसके बिक्री के दाम पक्के करने के बाद ही यह आपकी दुकान की सूची में आएगा। मात्रा का अनुमान नहीं लगाया जाता।",
+      "hinglish": "Stock confirm nahin hai. Samaan aur bechne ka daam confirm karne ke baad hi yeh dukaan ki list mein aayega. Quantity ka andaza nahin lagaya jata."
+    },
+    "Source filename date: 30 Jan 2026. GST extra in the list; your shop tax label is separate.": {
+      "hi": "फाइल के नाम में तारीख 30 जनवरी 2026 है। मूल सूची में GST अलग है; दुकान के दाम का GST लेबल अलग है।",
+      "hinglish": "File ke naam mein tareekh 30 Jan 2026 hai. Asli list mein GST alag hai; dukaan ke daam ka GST label alag hai."
+    },
+    "Prince pricelist · effective 1 Jan 2026": {
+      "hi": "Prince प्राइसलिस्ट · 1 जनवरी 2026 से लागू",
+      "hinglish": "Prince pricelist · 1 Jan 2026 se laagu"
+    },
+    "Source prices are not your confirmed selling price. Confirm that you carry this variant, its specification, selling unit and tax label. Quantity remains unknown.": {
+      "hi": "मूल सूची का दाम आपका पक्का बिक्री दाम नहीं है। सामान, उसका विवरण, बिक्री की इकाई और GST लेबल जाँचें। मात्रा अभी अज्ञात है।",
+      "hinglish": "Asli list ka daam aapka pakka bechne ka daam nahin hai. Samaan, uski details, bechne ki unit aur GST label check karein. Quantity abhi maloom nahin hai."
+    },
+    "Source prices are separate from your selling price. Confirm the specification, selling unit and shop tax label. Quantity remains unknown.": {
+      "hi": "मूल दाम और दुकान के बिक्री दाम अलग हैं। विवरण, बिक्री की इकाई और GST लेबल जाँचें। मात्रा अज्ञात है।",
+      "hinglish": "Asli daam aur dukaan ka bechne ka daam alag hain. Details, bechne ki unit aur GST label check karein. Quantity maloom nahin hai."
+    },
+    "You are confirming that you carry these selected variants. Check each specification, selling unit, selling price and shop tax label. Source list rates stay separate. No stock quantity is recorded.": {
+      "hi": "आप पुष्टि कर रहे हैं कि चुना सामान दुकान में रखते हैं। हर साइज़, बिक्री की इकाई, दाम और GST लेबल जाँचें। मूल सूची के दाम अलग रहेंगे। स्टॉक की मात्रा दर्ज नहीं की जाती।",
+      "hinglish": "Aap confirm kar rahe hain ki chuna samaan dukaan mein rakhte hain. Har size, bechne ki unit, daam aur GST label check karein. Asli list ke daam alag rahenge. Stock ki quantity darj nahin hoti."
+    },
+    "You are confirming that you carry these selected variants. Confirm every specification, selling unit, price and tax label. Source list prices remain separate. No stock quantity is recorded.": {
+      "hi": "आप पुष्टि कर रहे हैं कि चुना सामान दुकान में रखते हैं। विवरण, बिक्री की इकाई, दाम और GST लेबल जाँचें। मूल दाम अलग रहेंगे। स्टॉक की मात्रा दर्ज नहीं होती।",
+      "hinglish": "Aap confirm kar rahe hain ki chuna samaan dukaan mein rakhte hain. Details, bechne ki unit, daam aur GST label check karein. Asli daam alag rahenge. Stock ki quantity darj nahin hoti."
+    },
+    "Pack details are manufacturer packaging, not shop quantities.": {
+      "hi": "पैक की जानकारी कंपनी की पैकिंग है, दुकान के स्टॉक की मात्रा नहीं।",
+      "hinglish": "Packing ki details company ki hain, dukaan ke stock ki quantity nahin."
+    },
+    "Speak, type or add an image. AI suggests items and categories; you review every price.": {
+      "hi": "बोलें, लिखें या फोटो जोड़ें। AI सामान और श्रेणी सुझाता है; हर दाम की जाँच आप करते हैं।",
+      "hinglish": "Bolein, likhein ya photo jodein. AI samaan aur category sujhata hai; har daam aap check karte hain."
+    },
+    "You’re in control. Check each size, selling price and unit.": {
+      "hi": "हर साइज़, बिक्री का दाम और इकाई जाँचें। सेव करना आपके हाथ में है।",
+      "hinglish": "Har size, bechne ka daam aur unit check karein. Save karna aapke haath mein hai."
+    },
+    "Confirm names, sizes and every selling price.": {
+      "hi": "नाम, साइज़ और हर बिक्री दाम पक्का करें।",
+      "hinglish": "Naam, size aur har bechne ka daam pakka karein."
+    },
+    "Speak or type the way you do at the counter.": {
+      "hi": "काउंटर पर जैसे बोलते हैं, वैसे ही बोलें या लिखें।",
+      "hinglish": "Counter par jaise bolte hain, waise hi bolein ya likhein."
+    },
+    "Text or image · AI suggests categories · Always reviewed before saving": {
+      "hi": "लिखें या फोटो दें · AI श्रेणी सुझाता है · सेव से पहले जाँच ज़रूरी",
+      "hinglish": "Likhein ya photo dein · AI category sujhata hai · Save se pehle check zaroori"
+    },
+    "Review sends this crop to OpenAI. Missing prices stay blank. A single-item image is also used as its photo.": {
+      "hi": "जाँच के लिए चुना फोटो हिस्सा OpenAI को भेजा जाता है। जो दाम नहीं मिले, वे खाली रहते हैं। एक सामान वाली फोटो उसी सामान की तस्वीर भी बनती है।",
+      "hinglish": "Review ke liye chuna photo hissa OpenAI ko bheja jata hai. Jo daam nahin mile, woh khaali rehte hain. Ek samaan wali photo usi samaan ki tasveer bhi banti hai."
+    },
+    "Submitted text and images are sent to OpenAI for parsing or category suggestions. Your full catalog stays on this phone.": {
+      "hi": "भेजे गए टेक्स्ट और फोटो पढ़ने या श्रेणी सुझाने के लिए OpenAI को जाते हैं। आपकी पूरी दुकान की सूची इसी फोन में रहती है।",
+      "hinglish": "Bheje gaye text aur photo padhne ya category sujhane ke liye OpenAI ko jate hain. Aapki poori dukaan ki list isi phone mein rehti hai."
+    },
+    "Prices for matching sizes will update. Review carefully before saving.": {
+      "hi": "मिलते साइज़ के दाम बदलेंगे। सेव करने से पहले ध्यान से जाँचें।",
+      "hinglish": "Milte sizes ke daam badlenge. Save karne se pehle dhyan se check karein."
+    },
+    "Matching sizes will be updated.": {
+      "hi": "मिलते साइज़ बदले जाएँगे।",
+      "hinglish": "Milte sizes badle jayenge."
+    },
+    "Update that item instead": {
+      "hi": "उसी सामान में बदलाव करें",
+      "hinglish": "Usi samaan mein badlav karein"
+    },
+    "Update existing item": {
+      "hi": "पहले वाले सामान में बदलाव करें",
+      "hinglish": "Pehle wale samaan mein badlav karein"
+    },
+    "Save as a separate item instead": {
+      "hi": "अलग सामान की तरह सेव करें",
+      "hinglish": "Alag samaan ki tarah save karein"
+    },
+    "Save as new instead": {
+      "hi": "नया सामान बनाकर सेव करें",
+      "hinglish": "Naya samaan banakar save karein"
+    },
+    "Set up OpenAI to use natural entry": {
+      "hi": "बोलचाल वाली एंट्री के लिए OpenAI सेट करें",
+      "hinglish": "Bolchaal wali entry ke liye OpenAI set karein"
+    },
+    "Export a ZIP with all items, photos and price history. Save it to Drive, WhatsApp or another safe place. API keys are excluded.": {
+      "hi": "सामान, फोटो और पुराने दाम का ZIP बैकअप निकालें। Drive, WhatsApp या सुरक्षित जगह रखें। API कुंजी बैकअप में नहीं जाती।",
+      "hinglish": "Samaan, photo aur purane daam ka ZIP backup nikalein. Drive, WhatsApp ya surakshit jagah rakhein. API key backup mein nahin jati."
+    },
+    "Restoring replaces all current items and history with the backup. Export your current catalog first if you need to keep it. Your OpenAI key stays unchanged.": {
+      "hi": "बैकअप लौटाने पर अभी की सूची और पुराने दाम बदल जाएँगे। जरूरत हो तो पहले मौजूदा सूची का बैकअप निकालें। OpenAI कुंजी नहीं बदलेगी।",
+      "hinglish": "Backup lautane par abhi ki list aur purane daam badal jayenge. Zaroorat ho to pehle maujooda list ka backup nikalein. OpenAI key nahin badlegi."
+    },
+    "Save a customer's words as another name for an item. Future searches will find it offline.": {
+      "hi": "ग्राहक के बोले नाम को सामान का दूसरा नाम बनाकर सेव करें। अगली बार बिना इंटरनेट खोज पाएँगे।",
+      "hinglish": "Customer ke bole naam ko samaan ka doosra naam banakar save karein. Agli baar bina internet khoj payenge."
+    },
+    "A few things, just your way.": {
+      "hi": "आपकी पसंद की सेटिंग्स।",
+      "hinglish": "Aapki pasand ki settings."
+    },
+    "Set your price labels, keep a backup and make this preview your own.": {
+      "hi": "दाम का लेबल चुनें, बैकअप रखें और अपनी पसंद की सेटिंग करें।",
+      "hinglish": "Daam ka label chunein, backup rakhein aur apni pasand ki setting karein."
+    },
+    "Labels your prices. It does not calculate or add tax.": {
+      "hi": "यह सिर्फ दाम का लेबल है। यह GST जोड़ता या हिसाब नहीं करता।",
+      "hinglish": "Yeh sirf daam ka label hai. Yeh GST jodta ya hisaab nahin karta."
+    },
+    "Voice support depends on your browser’s speech service.": {
+      "hi": "बोलकर खोज आपके ब्राउज़र की वॉइस सेवा पर निर्भर है।",
+      "hinglish": "Bolkar khoj aapke browser ki voice service par nirbhar hai."
+    },
+    "This web preview is stored in this browser, separately from the Android app. Export a backup before clearing browser data.": {
+      "hi": "यह वेब सूची इसी ब्राउज़र में रहती है और Android ऐप से अलग है। ब्राउज़र का डेटा हटाने से पहले बैकअप निकालें।",
+      "hinglish": "Yeh web list isi browser mein rehti hai aur Android app se alag hai. Browser ka data hatane se pehle backup nikalein."
+    },
+    "JSON format for this web preview. Android uses its own ZIP backups. API keys are never exported.": {
+      "hi": "वेब प्रीव्यू का बैकअप JSON है। Android का ZIP बैकअप अलग है। API कुंजी कभी बैकअप में नहीं जाती।",
+      "hinglish": "Web preview ka backup JSON hai. Android ka ZIP backup alag hai. API key kabhi backup mein nahin jati."
+    },
+    "Sample items make it easy to look around. Clear them to start your own catalog. Any items you add yourself will stay.": {
+      "hi": "उदाहरण वाले सामान से ऐप समझें। अपनी सूची शुरू करने के लिए इन्हें हटा सकते हैं। आपका जोड़ा सामान नहीं हटेगा।",
+      "hinglish": "Sample samaan se app samjhein. Apni list shuru karne ke liye inhein hata sakte hain. Aapka joda samaan nahin hatega."
+    },
+    "Choose a price unit.": {
+      "hi": "बिक्री की इकाई चुनें।",
+      "hinglish": "Bechne ki unit chunein."
+    },
+    "Enter a valid price and a discount from 0 to 100%, with up to two decimal places.": {
+      "hi": "सही दाम और 0 से 100% के बीच छूट भरें। दशमलव के बाद अधिकतम दो अंक रखें।",
+      "hinglish": "Sahi daam aur 0 se 100% ke beech chhoot bharein. Decimal ke baad zyada se zyada do ank rakhein."
+    },
+    "Each size and unit must be unique.": {
+      "hi": "हर साइज़ और इकाई अलग होनी चाहिए।",
+      "hinglish": "Har size aur unit alag honi chahiye."
+    },
+    "Select variants that you carry first.": {
+      "hi": "पहले वह सामान चुनें जो दुकान में रखते हैं।",
+      "hinglish": "Pehle woh samaan chunein jo dukaan mein rakhte hain."
+    },
+    "Save or discard your current review before activating reference variants.": {
+      "hi": "नया रेफरेंस सामान चुनने से पहले अभी की जाँच सेव या रद्द करें।",
+      "hinglish": "Naya reference samaan chunne se pehle abhi ka review save ya radd karein."
+    },
+    "Choose sizes ({0})": {
+      "hi": "साइज़ चुनें ({0})",
+      "hinglish": "Size chunein ({0})"
+    },
+    "Save {0} item on this phone": {
+      "hi": "{0} सामान इस फोन में सेव करें",
+      "hinglish": "{0} samaan is phone mein save karein"
+    },
+    "Save {0} items on this phone": {
+      "hi": "{0} सामान इस फोन में सेव करें",
+      "hinglish": "{0} samaan is phone mein save karein"
+    },
+    "Save {0} item": {
+      "hi": "{0} सामान सेव करें",
+      "hinglish": "{0} samaan save karein"
+    },
+    "Save {0} items": {
+      "hi": "{0} सामान सेव करें",
+      "hinglish": "{0} samaan save karein"
+    },
+    "{0} item to review": {
+      "hi": "{0} सामान की जाँच बाकी",
+      "hinglish": "{0} samaan check karna hai"
+    },
+    "{0} items to review": {
+      "hi": "{0} सामान की जाँच बाकी",
+      "hinglish": "{0} samaan check karna hai"
+    },
+    "{0} selected · not saved yet": {
+      "hi": "{0} चुने गए · अभी सेव नहीं",
+      "hinglish": "{0} chune gaye · abhi save nahin"
+    },
+    "{0} selected": {
+      "hi": "{0} चुने गए",
+      "hinglish": "{0} chune gaye"
+    },
+    "· {0} matching variants · nothing saved yet": {
+      "hi": "· {0} मिलते साइज़ · अभी कुछ सेव नहीं",
+      "hinglish": "· {0} milte sizes · abhi kuch save nahin"
+    },
+    "{0} groups · {1} variants · {2} linked shop variants": {
+      "hi": "{0} प्रकार · {1} साइज़ · दुकान में {2} जुड़े साइज़",
+      "hinglish": "{0} groups · {1} sizes · dukaan mein {2} jude sizes"
+    },
+    "{0} product groups · {1} variants · {2} linked shop variants": {
+      "hi": "{0} प्रकार · {1} साइज़ · दुकान में {2} जुड़े साइज़",
+      "hinglish": "{0} groups · {1} sizes · dukaan mein {2} jude sizes"
+    },
+    "{0} variants": {
+      "hi": "{0} साइज़",
+      "hinglish": "{0} sizes"
+    },
+    "Source list · cover effective {0} · PDF p.{1}": {
+      "hi": "मूल सूची · कवर पर लागू तारीख {0} · PDF पन्ना {1}",
+      "hinglish": "Asli list · cover par laagu tareekh {0} · PDF panna {1}"
+    },
+    "Reference source · PDF p.{0} · cover effective 1 Jan 2026": {
+      "hi": "मूल रेफरेंस · PDF पन्ना {0} · कवर पर 1 जनवरी 2026 से लागू",
+      "hinglish": "Asli reference · PDF panna {0} · cover par 1 Jan 2026 se laagu"
+    },
+    "PDF page {0} / 92": {
+      "hi": "PDF पन्ना {0} / 92",
+      "hinglish": "PDF panna {0} / 92"
+    },
+    "Price updated {0}": {
+      "hi": "दाम बदला: {0}",
+      "hinglish": "Daam badla: {0}"
+    },
+    "Updated {0}": {
+      "hi": "बदला: {0}",
+      "hinglish": "Badla: {0}"
+    },
+    "Latest price update: {0}": {
+      "hi": "दाम में आखिरी बदलाव: {0}",
+      "hinglish": "Daam mein aakhri badlav: {0}"
+    },
+    "Selling price: {0} per {1}": {
+      "hi": "बिक्री का दाम: {0} प्रति {1}",
+      "hinglish": "Bechne ka daam: {0} per {1}"
+    },
+    "Selling price to save: {0}": {
+      "hi": "सेव होने वाला दाम: {0}",
+      "hinglish": "Save hone wala daam: {0}"
+    },
+    "Rupees per {0}": {
+      "hi": "रुपये प्रति {0}",
+      "hinglish": "Rupaye per {0}"
+    },
+    "per {0}": {
+      "hi": "प्रति {0}",
+      "hinglish": "per {0}"
+    },
+    "Missed searches · {0}": {
+      "hi": "न मिले सामान की खोज · {0}",
+      "hinglish": "Na mile samaan ki khoj · {0}"
+    },
+    "Which item is “{0}”?": {
+      "hi": "“{0}” कौन सा सामान है?",
+      "hinglish": "“{0}” kaun sa samaan hai?"
+    },
+    "{0} already exists.": {
+      "hi": "{0} पहले से है।",
+      "hinglish": "{0} pehle se hai."
+    },
+    "{0} item saved in this browser.": {
+      "hi": "{0} सामान इस ब्राउज़र में सेव हुआ।",
+      "hinglish": "{0} samaan is browser mein save hua."
+    },
+    "{0} items saved in this browser.": {
+      "hi": "{0} सामान इस ब्राउज़र में सेव हुए।",
+      "hinglish": "{0} samaan is browser mein save hue."
+    },
+    "{0} item saved on this phone.": {
+      "hi": "{0} सामान इस फोन में सेव हुआ।",
+      "hinglish": "{0} samaan is phone mein save hua."
+    },
+    "{0} items saved on this phone.": {
+      "hi": "{0} सामान इस फोन में सेव हुए।",
+      "hinglish": "{0} samaan is phone mein save hue."
+    },
+    "Show all {0} sizes": {
+      "hi": "सभी {0} साइज़ दिखाएँ",
+      "hinglish": "Saare {0} sizes dikhayein"
+    },
+    "Show fewer sizes": {
+      "hi": "कम साइज़ दिखाएँ",
+      "hinglish": "Kam sizes dikhayein"
+    },
+    "Dukaan · v{0}\nBuilt for one phone, one shop.": {
+      "hi": "दुकान · v{0}\nएक फोन, एक दुकान के लिए।",
+      "hinglish": "Dukaan · v{0}\nEk phone, ek dukaan ke liye."
+    },
+    "Zoom {0}×": {
+      "hi": "ज़ूम {0}×",
+      "hinglish": "Zoom {0}×"
+    },
+    "Price last updated {0}. Discount applies once to the entered price. Your previous selling price stays in history.": {
+      "hi": "दाम में आखिरी बदलाव {0}। छूट एक बार लागू होगी। पुराना दाम हिस्ट्री में रहेगा।",
+      "hinglish": "Daam mein aakhri badlav {0}. Chhoot ek baar lagegi. Purana daam history mein rahega."
+    },
+    "Last price update: {0}. Discount applies once to the entered price.": {
+      "hi": "दाम में आखिरी बदलाव: {0}। छूट एक बार लागू होगी।",
+      "hinglish": "Daam mein aakhri badlav: {0}. Chhoot ek baar lagegi."
+    },
+    "Your shop, in your pocket": {
+      "hi": "आपकी दुकान, आपकी जेब में",
+      "hinglish": "Aapki dukaan, aapki jeb mein"
+    },
+    "Dukaan": {
+      "hi": "दुकान",
+      "hinglish": "Dukaan"
+    },
+    "Find the price. Get back to your customer.": {
+      "hi": "दाम खोजें और ग्राहक का काम करें।",
+      "hinglish": "Daam khojein aur customer ka kaam karein."
+    },
+    "Your shelves, searchable": {
+      "hi": "दुकान का सामान, अब आसानी से खोजें",
+      "hinglish": "Dukaan ka samaan, ab aasani se khojein"
+    },
+    "Add your first item with its sizes and selling prices. Everything stays on this phone.": {
+      "hi": "पहला सामान उसके साइज़ और बिक्री दाम के साथ जोड़ें। सब इसी फोन में रहेगा।",
+      "hinglish": "Pehla samaan uske size aur bechne ke daam ke saath jodein. Sab isi phone mein rahega."
+    },
+    "Search “tala 50mm”": {
+      "hi": "“ताला 50mm” खोजें",
+      "hinglish": "“tala 50mm” khojein"
+    },
+    "On your shelves": {
+      "hi": "दुकान की सूची में",
+      "hinglish": "Dukaan ki list mein"
+    },
+    "Couldn't find that one": {
+      "hi": "यह सामान नहीं मिला",
+      "hinglish": "Yeh samaan nahin mila"
+    },
+    "No match yet": {
+      "hi": "अभी सामान नहीं मिला",
+      "hinglish": "Abhi samaan nahin mila"
+    },
+    "Try another name, size or spelling. Add an alias to make future searches work offline.": {
+      "hi": "दूसरा नाम, साइज़ या वर्तनी खोजें। दूसरा नाम सेव करने से अगली बार बिना इंटरनेट मिलेगा।",
+      "hinglish": "Doosra naam, size ya spelling khojein. Doosra naam save karne se agli baar bina internet milega."
+    },
+    "No results yet.": {
+      "hi": "अभी कोई सामान नहीं मिला।",
+      "hinglish": "Abhi koi samaan nahin mila."
+    },
+    "Effective": {
+      "hi": "लागू",
+      "hinglish": "Laagu"
+    },
+    "Prince Pipes · 2026 price list": {
+      "hi": "Prince Pipes · 2026 की प्राइसलिस्ट",
+      "hinglish": "Prince Pipes · 2026 ki pricelist"
+    },
+    "List rates, pack sizes and product codes are reference data. They do not confirm availability, stock quantities or your selling prices. Repeated codes and unclear source fields stay flagged for review.": {
+      "hi": "सूची के दाम, पैक और कोड केवल रेफरेंस हैं। ये उपलब्धता, स्टॉक की मात्रा या आपके बिक्री दाम की पुष्टि नहीं करते। दोहराए गए कोड और अस्पष्ट विवरण जाँच के लिए चिह्नित हैं।",
+      "hinglish": "List ke daam, pack aur codes sirf reference hain. Yeh availability, stock ki quantity ya aapke bechne ke daam confirm nahin karte. Dobara aaye codes aur unclear details check ke liye marked hain."
+    },
+    "No resolved source price": {
+      "hi": "मूल दाम स्पष्ट नहीं",
+      "hinglish": "Asli daam saaf nahin"
+    },
+    "Source price not resolved. Read the PDF.": {
+      "hi": "मूल दाम स्पष्ट नहीं है। PDF पढ़ें।",
+      "hinglish": "Asli daam saaf nahin hai. PDF padhein."
+    },
+    "Reference library unavailable": {
+      "hi": "रेफरेंस सूची उपलब्ध नहीं",
+      "hinglish": "Reference list uplabdh nahin"
+    },
+    "Your shop catalog is unchanged. Reload to retry loading the local library.": {
+      "hi": "दुकान की सूची नहीं बदली है। रेफरेंस खोलने के लिए पन्ना फिर लोड करें।",
+      "hinglish": "Dukaan ki list nahin badli hai. Reference kholne ke liye panna phir load karein."
+    },
+    "Loading page…": {
+      "hi": "पन्ना खुल रहा है…",
+      "hinglish": "Panna khul raha hai…"
+    },
+    "Source PDF is unavailable in this build. Reference rows and page numbers remain available.": {
+      "hi": "इस बिल्ड में मूल PDF उपलब्ध नहीं है। रेफरेंस विवरण और पन्नों की संख्या उपलब्ध है।",
+      "hinglish": "Is build mein asli PDF uplabdh nahin hai. Reference details aur panna number uplabdh hain."
+    },
+    "What is sent": {
+      "hi": "क्या भेजा जाता है",
+      "hinglish": "Kya bheja jata hai"
+    },
+    "Submitted text, images & category names": {
+      "hi": "भेजा गया टेक्स्ट, फोटो और श्रेणी के नाम",
+      "hinglish": "Bheja gaya text, photo aur category ke naam"
+    },
+    "Natural entry needs an internet connection. Catalog search and manual editing stay local.": {
+      "hi": "बोलचाल वाली एंट्री के लिए इंटरनेट चाहिए। खोज और खुद की गई एंट्री लोकल रहती है।",
+      "hinglish": "Bolchaal wali entry ke liye internet chahiye. Khoj aur khud ki gayi entry local rehti hai."
+    },
+    "Fit width": {
+      "hi": "चौड़ाई के अनुसार",
+      "hinglish": "Chaudai ke hisaab se"
+    },
+    "Original source": {
+      "hi": "मूल विवरण",
+      "hinglish": "Asli details"
+    },
+    "← Previous": {
+      "hi": "← पिछला",
+      "hinglish": "← Pichhla"
+    },
+    "Next →": {
+      "hi": "अगला →",
+      "hinglish": "Agla →"
+    },
+    "PDF page": {
+      "hi": "PDF पन्ना",
+      "hinglish": "PDF panna"
+    },
+    "Zoom": {
+      "hi": "बड़ा करें",
+      "hinglish": "Zoom"
+    },
+    "Download PDF ↓": {
+      "hi": "PDF डाउनलोड करें ↓",
+      "hinglish": "PDF download karein ↓"
+    },
+    "per": {
+      "hi": "प्रति",
+      "hinglish": "per"
+    },
+    "Price updated.": {
+      "hi": "दाम बदल गया।",
+      "hinglish": "Daam badal gaya."
+    },
+    "New item": {
+      "hi": "नया सामान",
+      "hinglish": "Naya samaan"
+    },
+    "Update existing": {
+      "hi": "पहले वाले सामान में बदलाव",
+      "hinglish": "Pehle wale samaan mein badlav"
+    },
+    "Shown prices are per selected unit.": {
+      "hi": "दाम चुनी हुई इकाई के हैं।",
+      "hinglish": "Daam chuni hui unit ke hain."
+    },
+    "No product image available": {
+      "hi": "उत्पाद की फोटो उपलब्ध नहीं",
+      "hinglish": "Product ki photo uplabdh nahin"
+    },
+    "Item code appears in multiple source contexts. Entries are kept separate; verify size, class, colour and price.": {
+      "hi": "एक ही कोड अलग-अलग विवरण में है। एंट्री अलग रखी गई हैं; साइज़, क्लास, रंग और दाम जाँचें।",
+      "hinglish": "Ek hi code alag-alag details mein hai. Entry alag rakhi gayi hain; size, class, rang aur daam check karein."
+    },
+    "Source does not specify a selling unit in the price heading. Confirm it separately.": {
+      "hi": "मूल दाम के शीर्षक में बिक्री की इकाई स्पष्ट नहीं है। इसे अलग से पक्का करें।",
+      "hinglish": "Asli daam ke heading mein bechne ki unit saaf nahin hai. Ise alag se pakka karein."
+    },
+    "No item code printed for this priced entry.": {
+      "hi": "इस दाम के साथ उत्पाद कोड नहीं छपा है।",
+      "hinglish": "Is daam ke saath product code nahin chhapa hai."
+    },
+    "No unambiguous price mapped to this item code; inspect the source row.": {
+      "hi": "इस कोड का दाम स्पष्ट नहीं है; मूल पंक्ति जाँचें।",
+      "hinglish": "Is code ka daam saaf nahin hai; asli row check karein."
+    },
+    "Source column says size in inch but contains values such as 100 or 20. Retained verbatim; do not treat as an inch dimension.": {
+      "hi": "मूल कॉलम में इंच लिखा है, पर 100 या 20 जैसे मान हैं। इन्हें जैसा छपा है वैसा रखा है; इन्हें इंच का साइज़ न मानें।",
+      "hinglish": "Asli column mein inch likha hai, par 100 ya 20 jaise numbers hain. Inhein jaisa chhapa hai waisa rakha hai; inhein inch ka size na maanein."
+    },
+    "Source prints 85860.00 for this cover. Possible source typo; retained exactly and never used as a shop price automatically.": {
+      "hi": "मूल सूची में इस ढक्कन का दाम 85860.00 छपा है। छपाई की गलती हो सकती है; इसे बदला नहीं गया है और अपने-आप दुकान का दाम नहीं बनाया जाता।",
+      "hinglish": "Asli list mein is cover ka daam 85860.00 chhapa hai. Chhapai ki galti ho sakti hai; ise badla nahin gaya aur apne aap dukaan ka daam nahin banta."
+    },
+    "The printed price heading mentions both PC and MTR. Confirm the source rate basis before using it.": {
+      "hi": "छपे दाम के शीर्षक में PC और MTR दोनों हैं। इस्तेमाल से पहले दाम की इकाई पक्की करें।",
+      "hinglish": "Chhape daam ke heading mein PC aur MTR dono hain. Istemaal se pehle daam ki unit pakki karein."
+    },
+    "The source packaging column contains dimensions in mm. Retained under its printed heading; verify the size and pack details in the PDF.": {
+      "hi": "मूल पैकिंग कॉलम में mm के साइज़ हैं। छपा शीर्षक रखा गया है; PDF में साइज़ और पैकिंग जाँचें।",
+      "hinglish": "Asli packing column mein mm ke sizes hain. Chhapa heading rakha hai; PDF mein size aur packing check karein."
+    },
+    "Unusual item code length is printed in the source; retained without correction.": {
+      "hi": "मूल सूची में कोड की लंबाई असामान्य है; इसे बिना बदले रखा है।",
+      "hinglish": "Asli list mein code ki lambai alag hai; ise bina badle rakha hai."
+    },
+    "Advertisement only: no item code or price printed.": {
+      "hi": "केवल विज्ञापन: कोड या दाम नहीं छपा है।",
+      "hinglish": "Sirf vigyapan: code ya daam nahin chhapa hai."
+    },
+    "104.55 is printed under Item Code. No actual SKU or explicit price heading is provided. Verify the source before entering a selling price.": {
+      "hi": "Item Code के नीचे 104.55 छपा है। सही SKU या स्पष्ट दाम का शीर्षक नहीं दिया है। बिक्री दाम भरने से पहले मूल पन्ना जाँचें।",
+      "hinglish": "Item Code ke neeche 104.55 chhapa hai. Sahi SKU ya saaf daam ka heading nahin diya hai. Bechne ka daam bharne se pehle asli panna check karein."
+    },
+    "Rendered directly from the supplied PDF. These are source list prices and pack details, not confirmed shop prices or stock quantities.": {
+      "hi": "यह चित्र सीधे मूल PDF से है। ये कंपनी की सूची के दाम और पैकिंग हैं, दुकान के पक्के दाम या स्टॉक की मात्रा नहीं।",
+      "hinglish": "Yeh tasveer seedhe asli PDF se hai. Yeh company ki list ke daam aur packing hain, dukaan ke pakke daam ya stock ki quantity nahin."
+    },
+    "Source page preview is unavailable. Download the original PDF to inspect this page.": {
+      "hi": "मूल पन्ने का प्रीव्यू उपलब्ध नहीं है। पन्ना जाँचने के लिए मूल PDF डाउनलोड करें।",
+      "hinglish": "Asli panne ka preview uplabdh nahin hai. Panna check karne ke liye asli PDF download karein."
+    },
+    "on the cover. Filename date: {0}. GST extra (terms on PDF page 92); not the shop tax setting.": {
+      "hi": "कवर पर। फाइल के नाम की तारीख: {0}। सूची में GST अलग है (शर्तें PDF पन्ना 92); दुकान का GST लेबल अलग है।",
+      "hinglish": "Cover par. File ke naam ki tareekh: {0}. List mein GST alag hai (shartein PDF panna 92); dukaan ka GST label alag hai."
+    },
+    "·  {0} items": {
+      "hi": "·  {0} सामान",
+      "hinglish": "·  {0} samaan"
+    },
+    "·  {0} item": {
+      "hi": "·  {0} सामान",
+      "hinglish": "·  {0} samaan"
+    },
+    "{0} matches": {
+      "hi": "{0} सामान मिले",
+      "hinglish": "{0} samaan mile"
+    },
+    "Updated {0} · Confirmed shop price · reference linked": {
+      "hi": "बदला: {0} · दुकान का पक्का दाम · रेफरेंस जुड़ा है",
+      "hinglish": "Badla: {0} · Dukaan ka pakka daam · reference juda hai"
+    },
+    "A little shelf inspiration.": {
+      "hi": "कुछ उदाहरण वाले सामान।",
+      "hinglish": "Kuch sample samaan."
+    },
+    "These {0} sample items help you explore. Prices are examples.": {
+      "hi": "इन {0} उदाहरणों से ऐप समझें। दाम सिर्फ उदाहरण हैं।",
+      "hinglish": "In {0} samples se app samjhein. Daam sirf examples hain."
+    },
+    "{0} items on your shelves": {
+      "hi": "आपकी सूची में {0} सामान",
+      "hinglish": "Aapki list mein {0} samaan"
+    },
+    "Tap a price to update it": {
+      "hi": "दाम बदलने के लिए उस पर टैप करें",
+      "hinglish": "Daam badalne ke liye us par tap karein"
+    },
+    "No matched product picture": {
+      "hi": "उत्पाद का चित्र नहीं मिला",
+      "hinglish": "Product ki tasveer nahin mili"
+    },
+    "  or  ": {
+      "hi": "  या  ",
+      "hinglish": "  ya  "
+    },
+    "A catalog that learns": {
+      "hi": "खोज को बेहतर बनाने वाली सूची",
+      "hinglish": "Khoj ko behtar banane wali list"
+    },
+    "Connect a customer's words to the right item.": {
+      "hi": "ग्राहक के बोले नाम को सही सामान से जोड़ें।",
+      "hinglish": "Customer ke bole naam ko sahi samaan se jodein."
+    },
+    "Made for your counter": {
+      "hi": "आपकी दुकान के लिए",
+      "hinglish": "Aapki dukaan ke liye"
+    },
+    "Your shop settings": {
+      "hi": "आपकी दुकान की सेटिंग्स",
+      "hinglish": "Aapki dukaan ki settings"
+    },
+    "Your catalog lives on this phone. Keep a backup.": {
+      "hi": "आपकी सूची इसी फोन में रहती है। बैकअप रखें।",
+      "hinglish": "Aapki list isi phone mein rehti hai. Backup rakhein."
+    },
+    "Less typing, more selling": {
+      "hi": "कम लिखें, ज़्यादा बेचें",
+      "hinglish": "Kam likhein, zyada bechein"
+    },
+    "Key saved securely on this phone": {
+      "hi": "कुंजी इस फोन में सुरक्षित है",
+      "hinglish": "Key is phone mein surakshit hai"
+    },
+    "Connect natural entry and smart search": {
+      "hi": "बोलचाल वाली एंट्री और स्मार्ट खोज जोड़ें",
+      "hinglish": "Bolchaal wali entry aur smart khoj jodein"
+    },
+    "Replace API key": {
+      "hi": "API कुंजी बदलें",
+      "hinglish": "API key badlein"
+    },
+    "Update existing · {0}": {
+      "hi": "पहले वाले सामान में बदलाव · {0}",
+      "hinglish": "Pehle wale samaan mein badlav · {0}"
+    },
+    "New item · {0}": {
+      "hi": "नया सामान · {0}",
+      "hinglish": "Naya samaan · {0}"
+    },
+    "Remove item {0} from review": {
+      "hi": "जाँच से सामान {0} हटाएँ",
+      "hinglish": "Review se samaan {0} hatayein"
+    },
+    "e.g. 50 mm": {
+      "hi": "जैसे 50 mm",
+      "hinglish": "Jaise 50 mm"
+    },
+    "ताला हो या पेच — बस नाम से ढूँढें।": {
+      "hi": "ताला हो या पेच — बस नाम से ढूँढें।",
+      "hinglish": "Tala ho ya pench — bas naam se dhoondhein."
+    },
+    "Uses the key in your project’s": {
+      "hi": "आपके प्रोजेक्ट की कुंजी इस्तेमाल करता है:",
+      "hinglish": "Aapke project ki key istemaal karta hai:"
+    },
+    "file. The key stays on the localhost server and is never sent to your browser.": {
+      "hi": "फाइल से। कुंजी लोकल सर्वर पर रहती है और ब्राउज़र में नहीं भेजी जाती।",
+      "hinglish": "File se. Key local server par rehti hai aur browser mein nahin bheji jati."
+    },
+    "No OpenAI key was found on the local server. Add it to the project’s .env.local file; manual entry works now.": {
+      "hi": "लोकल सर्वर पर OpenAI कुंजी नहीं मिली। इसे प्रोजेक्ट की .env.local फाइल में जोड़ें; खुद एंट्री करना अभी भी चलता है।",
+      "hinglish": "Local server par OpenAI key nahin mili. Ise project ki .env.local file mein jodein; khud entry karna abhi bhi chalta hai."
+    }
+  },
+  "terms": {
+    "reducing tee": {
+      "hi": "रिड्यूसिंग टी",
+      "hinglish": "Reducing tee",
+      "aliases": [
+        "reducing ti"
+      ]
+    },
+    "reducing elbow": {
+      "hi": "रिड्यूसिंग एल्बो",
+      "hinglish": "Reducing elbow",
+      "aliases": [
+        "reducing elbo"
+      ]
+    },
+    "rubber ring": {
+      "hi": "रबर रिंग",
+      "hinglish": "Rubber ring",
+      "aliases": [
+        "rabbar ring",
+        "रबड़ रिंग"
+      ]
+    },
+    "solvent cement": {
+      "hi": "सॉल्वेंट सीमेंट",
+      "hinglish": "Solvent cement",
+      "aliases": [
+        "solvent siment"
+      ]
+    },
+    "end cap": {
+      "hi": "एंड कैप",
+      "hinglish": "End cap",
+      "aliases": [
+        "endcap",
+        "एंडकैप"
+      ]
+    },
+    "end plug": {
+      "hi": "एंड प्लग",
+      "hinglish": "End plug",
+      "aliases": [
+        "endplug"
+      ]
+    },
+    "ball valve": {
+      "hi": "बॉल वाल्व",
+      "hinglish": "Ball valve",
+      "aliases": [
+        "ball valv"
+      ]
+    },
+    "water tank": {
+      "hi": "पानी की टंकी",
+      "hinglish": "Paani ki tanki",
+      "aliases": [
+        "paani ki tanki",
+        "पानी टंकी"
+      ]
+    },
+    "manhole cover": {
+      "hi": "मैनहोल ढक्कन",
+      "hinglish": "Manhole dhakkan",
+      "aliases": [
+        "manhole dhakkan"
+      ]
+    },
+    "inspection chamber": {
+      "hi": "इंस्पेक्शन चैंबर",
+      "hinglish": "Inspection chamber",
+      "aliases": [
+        "inspection chember"
+      ]
+    },
+    "coupler": {
+      "hi": "कपलर",
+      "hinglish": "Coupler",
+      "aliases": [
+        "kaplar",
+        "koplar"
+      ]
+    },
+    "elbow": {
+      "hi": "एल्बो",
+      "hinglish": "Elbow",
+      "aliases": [
+        "elbo",
+        "कोहनी"
+      ]
+    },
+    "socket": {
+      "hi": "सॉकेट",
+      "hinglish": "Socket",
+      "aliases": [
+        "soket"
+      ]
+    },
+    "tee": {
+      "hi": "टी",
+      "hinglish": "Tee",
+      "aliases": [
+        "ti"
+      ]
+    },
+    "pipe": {
+      "hi": "पाइप",
+      "hinglish": "Pipe",
+      "aliases": [
+        "paip"
+      ]
+    },
+    "pipes": {
+      "hi": "पाइप",
+      "hinglish": "Pipes",
+      "aliases": [
+        "paips"
+      ]
+    },
+    "union": {
+      "hi": "यूनियन",
+      "hinglish": "Union",
+      "aliases": [
+        "yuniyan"
+      ]
+    },
+    "valve": {
+      "hi": "वाल्व",
+      "hinglish": "Valve",
+      "aliases": [
+        "valv"
+      ]
+    },
+    "reducer": {
+      "hi": "रिड्यूसर",
+      "hinglish": "Reducer",
+      "aliases": [
+        "ridyusar"
+      ]
+    },
+    "adaptor": {
+      "hi": "एडाप्टर",
+      "hinglish": "Adaptor",
+      "aliases": [
+        "adapter",
+        "एडेप्टर"
+      ]
+    },
+    "adapter": {
+      "hi": "एडाप्टर",
+      "hinglish": "Adapter",
+      "aliases": [
+        "adaptor"
+      ]
+    },
+    "flange": {
+      "hi": "फ्लैंज",
+      "hinglish": "Flange",
+      "aliases": [
+        "flenj"
+      ]
+    },
+    "connector": {
+      "hi": "कनेक्टर",
+      "hinglish": "Connector",
+      "aliases": [
+        "kanektar"
+      ]
+    },
+    "bend": {
+      "hi": "बेंड",
+      "hinglish": "Bend",
+      "aliases": [
+        "bend"
+      ]
+    },
+    "trap": {
+      "hi": "ट्रैप",
+      "hinglish": "Trap",
+      "aliases": [
+        "trap"
+      ]
+    },
+    "fittings": {
+      "hi": "फिटिंग्स",
+      "hinglish": "Fittings",
+      "aliases": [
+        "fiting",
+        "फिटिंग"
+      ]
+    },
+    "water tanks": {
+      "hi": "पानी की टंकियाँ",
+      "hinglish": "Paani ki tankiyan",
+      "aliases": [
+        "paani ki tankiyan"
+      ]
+    },
+    "lid": {
+      "hi": "ढक्कन",
+      "hinglish": "Dhakkan",
+      "aliases": [
+        "dhakkan",
+        "ढक्कन"
+      ]
+    },
+    "clamp": {
+      "hi": "क्लैम्प",
+      "hinglish": "Clamp",
+      "aliases": [
+        "klemp"
+      ]
+    },
+    "agriculture": {
+      "hi": "कृषि",
+      "hinglish": "Kheti",
+      "aliases": [
+        "kheti"
+      ]
+    },
+    "borewell": {
+      "hi": "बोरवेल",
+      "hinglish": "Borewell",
+      "aliases": [
+        "borwel"
+      ]
+    },
+    "underground": {
+      "hi": "भूमिगत",
+      "hinglish": "Zameen ke neeche",
+      "aliases": [
+        "zameen ke neeche"
+      ]
+    },
+    "roofwater": {
+      "hi": "छत का पानी",
+      "hinglish": "Chhat ka paani",
+      "aliases": [
+        "chhat ka paani"
+      ]
+    },
+    "electrical": {
+      "hi": "बिजली",
+      "hinglish": "Bijli",
+      "aliases": [
+        "bijli"
+      ]
+    },
+    "drainage": {
+      "hi": "जल निकासी",
+      "hinglish": "Paani ki nikaasi",
+      "aliases": [
+        "paani ki nikaasi"
+      ]
+    },
+    "plumbing": {
+      "hi": "प्लंबिंग",
+      "hinglish": "Plumbing",
+      "aliases": [
+        "plambing"
+      ]
+    },
+    "septic tanks": {
+      "hi": "सेप्टिक टंकियाँ",
+      "hinglish": "Septic tankiyan",
+      "aliases": [
+        "septic tankiyan"
+      ]
+    },
+    "blue": {
+      "hi": "नीला",
+      "hinglish": "Neela",
+      "aliases": [
+        "neela"
+      ]
+    },
+    "white": {
+      "hi": "सफेद",
+      "hinglish": "Safed",
+      "aliases": [
+        "safed"
+      ]
+    },
+    "black": {
+      "hi": "काला",
+      "hinglish": "Kaala",
+      "aliases": [
+        "kaala"
+      ]
+    },
+    "Prince": {
+      "hi": "Prince",
+      "hinglish": "Prince",
+      "aliases": [
+        "प्रिंस",
+        "prins"
+      ]
+    }
+  }
+}

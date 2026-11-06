@@ -2,7 +2,7 @@
   "name": "Dukaan",
   "updated": "2026-11-06",
   "stage": "First working build",
-  "summary": "Android 0.3.0 is published on GitHub with a direct APK download and checksum. The source includes an independent localhost web preview and project cockpit. The next gate is choosing actual carried variants and real use on the shop owner’s phone.",
+  "summary": "Android 0.3.0 is published. A 0.4.0 update adds source product pictures and English/Hindi/Hinglish display modes; verification and release preparation are in progress. The web preview remains an independent localhost catalog.",
   "links": [
     {
       "label": "Open web preview",
@@ -20,13 +20,13 @@
   "tracks": [
     {
       "name": "Android app",
-      "status": "0.3.0 published test build",
-      "summary": "Offline catalog plus a separate Prince reference library. Select carried variants, review blank selling prices and units, and retain source links through migration and backups. Existing image, search, price/history and backup flows remain."
+      "status": "0.4.0 release preparation",
+      "summary": "Adds 520 matched source pictures for 2,404 reference variants, reviewed photo transfer, multilingual display and offline product aliases. Catalog facts, custom names, selling units and custom photos stay intact."
     },
     {
       "name": "Local web preview",
       "status": "Source published · runs locally",
-      "summary": "Independent browser catalog with a separate searchable reference library, source-page viewer and reviewed activation. Source list rates never become selling prices automatically."
+      "summary": "Independent browser catalog with product pictures and an English/हिन्दी/Hinglish selector. Translated option labels retain canonical stored values; display preference persists in browser backups."
     },
     {
       "name": "Release",
@@ -118,7 +118,7 @@
             "id": "android_reference",
             "title": "Reference JSON + original PDF",
             "role": "reference",
-            "detail": "Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links.",
+            "detail": "Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority.",
             "path": "app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt"
           }
         ],
@@ -205,7 +205,7 @@
             "id": "web_reference",
             "title": "Separate reference library",
             "role": "reference",
-            "detail": "Reads shared source JSON and local PDF/page images through fixed allowlisted routes. Selected variants require blank-price/unit review; only confirmed shop variants enter IndexedDB.",
+            "detail": "Reads shared source JSON and local PDF/page images through fixed allowlisted routes. Selected variants require blank-price/unit review; only confirmed shop variants enter IndexedDB. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority.",
             "path": "web/public/reference.js"
           }
         ],
@@ -252,7 +252,8 @@
       "The /project cockpit reads allowlisted project documentation. It has no catalog-writing or file-editing API.",
       "Images are cropped locally and sent to AI only for an explicit Review items or Suggest category request. Missing or unreadable prices must be reviewed and entered before saving.",
       "Discount percentages are a one-time calculator, not a persistent pricing rule: only the rounded net selling price is saved. Reopening an editor starts from that price without reapplying the discount.",
-      "A manufacturer pricelist never proves shop stock or selling prices. Reference variants start unconfirmed and hidden from shop search. Only explicit owner confirmation creates carried shop variants; quantities remain unknown. See ADR-007."
+      "A manufacturer pricelist never proves shop stock or selling prices. Reference variants start unconfirmed and hidden from shop search. Only explicit owner confirmation creates carried shop variants; quantities remain unknown. See ADR-007.",
+      "Display languages never rewrite catalog facts. Shared local translations and aliases preserve source IDs, technical specifications and canonical units. Original source text and custom item names remain available. See ADR-008."
     ]
   }
 }

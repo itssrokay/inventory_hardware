@@ -2,7 +2,7 @@
 
 # Dukaan — hardware shop catalog
 
-Current version: **0.3.0**. The first link above downloads the latest published Android test build.
+Current development build: **0.4.0**. Published Android test release: **0.3.0**. The first link above downloads the latest published build.
 
 Native Android app built from `plan.md`. It keeps the catalog on one phone and puts selling prices first. No server or account is required for local features.
 
@@ -113,6 +113,20 @@ All 17 web tests pass. In an isolated browser catalog, a synthetic Prince PVC so
 
 The supplied Prince PDF is imported into a separate library: **702 groups and 4,105 reference variants**, all stock unconfirmed and hidden from the main catalog. Select only carried variants, then confirm blank selling-price and unit fields before saving. Source list rates/dates, pack details and page references remain separate; no stock quantity is invented. Repeated activation is prevented by stable reference IDs retained in backups.
 
-Open **Reference** in Android or **Reference library** in the web preview. The [reference guide](docs/REFERENCE-CATALOG.md) explains source anomalies, the extraction audit and how to rebuild local PDF/source-page assets. The public APK link above now downloads v0.3.0. The web preview runs locally from the published source.
+Open **Reference** in Android or **Reference library** in the web preview. The [reference guide](docs/REFERENCE-CATALOG.md) explains source anomalies, the extraction audit and how to rebuild local PDF/source-page assets. Version 0.3.0 introduced the reference library. The web preview runs locally from the published source.
 
 The 0.3.0 build passed **19 Kotlin unit tests, 14 Android emulator tests, 23 web tests and 9 journal-helper checks**. Android lint has zero errors (16 warnings). Migration was exercised against the exported version 1 schema; reference activation, source links and backup restoration were checked in the emulator. Browser checks covered source-page viewing, blank price/unit review, one confirmed variant, persistence and prevention of repeated activation. The localhost catalog stayed at its original six sample items, with no activated reference variants. A repeated PDF import produced byte-identical JSON. No OpenAI request was needed for this import.
+
+## Product pictures and display languages · 0.4.0
+
+Reference products now show **520 matched manufacturer pictures**, covering **2,404 variants**. Pictures come from each product’s own PDF table and are labeled as illustrations; size or colour can vary. Unmatched products show a missing-picture message. Reviewed entry carries the picture into the shop catalog when no custom photo exists, and photos remain in backups.
+
+Choose **English**, **हिन्दी** or **Hinglish** in Android **Settings → App language**, or from the web preview’s language selector. Display language is separate from voice recognition. Controls and familiar source-product names use local translations and aliases; custom names, original source details, codes, sizes, prices and stored units stay intact. The choice persists after restart and in each platform’s own backup format. No translation API call is needed.
+
+To regenerate the source-bound pictures after recreating the original PDF locally:
+
+```sh
+build/reference-import-env/bin/python scripts/extract_reference_images.py app/src/main/assets/reference/prince-2026.pdf
+```
+
+The 0.4.0 build passed **21 Kotlin unit tests, 16 Android emulator tests, 27 web tests and 9 journal-helper checks**. Android lint reports zero errors (16 warnings). Emulator and browser checks covered language persistence, Hindi product search, reviewed source-photo transfer, custom-photo priority, unchanged canonical units and photo/language backup round trips. The original localhost catalog remains at six samples with no activated reference variants. No live OpenAI call was used for these changes.

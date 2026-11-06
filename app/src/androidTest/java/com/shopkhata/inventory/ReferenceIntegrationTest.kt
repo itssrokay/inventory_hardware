@@ -15,6 +15,21 @@ import org.junit.Assert.*
 import org.json.JSONObject
 
 class ReferenceIntegrationTest {
+    @Test fun displayPreferenceSurvivesBackupWithoutChangingPrices() = runBlocking {
+        val context=ApplicationProvider.getApplicationContext<Context>()
+        val prefs=context.getSharedPreferences("settings",Context.MODE_PRIVATE)
+        val old=prefs.getString("ui_language","en")!!
+        val db=Room.inMemoryDatabaseBuilder(context,CatalogDatabase::class.java).build()
+        try {
+            CatalogRepository(db).save(listOf(ItemDraft(name="Custom name",variants=listOf(VariantDraft(spec="15 mm",price="12.50")))))
+            prefs.edit().putString("ui_language","hinglish").commit()
+            val manager=BackupManager(context,db);val file=manager.export()
+            prefs.edit().putString("ui_language","en").commit();manager.restore(Uri.fromFile(file))
+            assertEquals("hinglish",prefs.getString("ui_language",null))
+            assertEquals("Custom name",db.catalog().all().single().item.name)
+            assertEquals(1250L,db.catalog().all().single().variants.single().pricePaise)
+        } finally {prefs.edit().putString("ui_language",old).commit();db.close()}
+    }
     @Test fun oldCatalogMigratesWithoutChangingPricesOrAddingReferenceStock() = runBlocking {
         val context=ApplicationProvider.getApplicationContext<Context>()
         val name="reference-migration"
@@ -47,9 +62,12 @@ class ReferenceIntegrationTest {
             assertTrue(repo.products.first().isEmpty())
             val group=catalog.products.first { it.page==8&&it.name.startsWith("COUPLER") }
             val selected=group.variants.first { it.code=="SIM107608" }
+            assertNotNull(group.imageAsset)
+            val sourcePhoto=PhotoStore(context).reference(requireNotNull(group.imageAsset))
+            assertNotNull(android.graphics.BitmapFactory.decodeFile(java.io.File(context.filesDir,sourcePhoto).path))
             val draft=referenceDrafts(catalog,setOf(selected.id),emptyList()).single()
             assertNotNull(draft.error())
-            val confirmed=draft.copy(variants=draft.variants.map { it.copy(unit="piece",price="9.50") })
+            val confirmed=draft.copy(photoPath=sourcePhoto,variants=draft.variants.map { it.copy(unit="piece",price="9.50") })
             repo.save(listOf(confirmed))
             val shop=repo.products.first();assertEquals(1,shop.size);assertEquals(1,shop.single().variants.size)
             assertEquals(950L,shop.single().variants.single().pricePaise)
@@ -59,6 +77,8 @@ class ReferenceIntegrationTest {
             val manager=BackupManager(context,db);val backup=manager.export()
             db.catalog().clearItems();manager.restore(Uri.fromFile(backup))
             val restored=repo.products.first().single();assertEquals(selected.id,restored.variants.single().sourceReferenceId)
+            assertNotNull(restored.photoPath)
+            assertNotNull(android.graphics.BitmapFactory.decodeFile(java.io.File(context.filesDir,restored.photoPath!!).path))
             assertEquals(950L,restored.variants.single().pricePaise)
             assertEquals("12.00",catalog.variants.getValue(selected.id).prices.single().second)
         } finally {db.close()}

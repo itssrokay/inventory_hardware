@@ -25,6 +25,7 @@ import com.shopkhata.inventory.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import coil.compose.AsyncImage
 
 @Composable
 fun ReferenceScreen(vm: InventoryViewModel) {
@@ -32,6 +33,7 @@ fun ReferenceScreen(vm: InventoryViewModel) {
     val error by vm.referenceError.collectAsStateWithLifecycle()
     val shop by vm.products.collectAsStateWithLifecycle()
     val selected by vm.referenceSelected.collectAsStateWithLifecycle()
+    val translations=LocalUiTranslations.current
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf("") }
     var limit by rememberSaveable(query, category) { mutableIntStateOf(20) }
@@ -41,41 +43,45 @@ fun ReferenceScreen(vm: InventoryViewModel) {
         val terms = normalize(query).split(' ').filter { it.isNotEmpty() }
         val code = query.trim().takeIf { Regex("(?:SIM|IM|IT|IP)\\d{5,8}",RegexOption.IGNORE_CASE).matches(it) }
         catalog?.products.orEmpty().filter { category.isBlank() || it.category == category }.mapNotNull { group ->
-            val variants = group.variants.filter { v -> if(code!=null) v.code?.equals(code,ignoreCase=true)==true else terms.all { it in normalize("Prince ${group.name} ${group.category} ${v.label} ${v.code} ${v.rawRow}") } }
+            val names=translations.searchText("Prince ${group.name} ${group.category}")
+            val variants = group.variants.filter { v -> if(code!=null) v.code?.equals(code,ignoreCase=true)==true else terms.all { it in normalize("$names ${v.label} ${v.code} ${v.rawRow}") } }
             if (variants.isEmpty()) null else group.copy(variants = variants)
         }
     }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f).testTag("reference-list"),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
             item {
-                Text("Reference library",style=MaterialTheme.typography.headlineMedium)
-                Text("Prince pricelist · effective 1 Jan 2026",style=MaterialTheme.typography.titleSmall)
-                Text("Stock unconfirmed. Hidden from your shop catalog until you select the variants you carry and confirm their selling prices. No quantity is assumed.")
-                Text("Source filename date: 30 Jan 2026. GST extra in the list; your shop tax label is separate.",style=MaterialTheme.typography.bodySmall)
-                TextButton(onClick={page=1}) { Text("Read original PDF") }
+                Text(ui("Reference library"),style=MaterialTheme.typography.headlineMedium)
+                Text(ui("Prince pricelist · effective 1 Jan 2026"),style=MaterialTheme.typography.titleSmall)
+                Text(ui("Stock unconfirmed. Hidden from your shop catalog until you select the variants you carry and confirm their selling prices. No quantity is assumed."))
+                Text(ui("Source filename date: 30 Jan 2026. GST extra in the list; your shop tax label is separate."),style=MaterialTheme.typography.bodySmall)
+                TextButton(onClick={page=1}) { Text(ui("Read original PDF")) }
             }
-            item { OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().testTag("reference-search"),label={Text("Search reference · name, size or code")},singleLine=true) }
+            item { OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().testTag("reference-search"),label={Text(ui("Search reference · name, size or code"))},singleLine=true) }
             item {
                 var open by remember { mutableStateOf(false) }
                 OutlinedButton(onClick={open=true}) { Text(category.ifBlank { "All product families" }) }
                 DropdownMenu(expanded=open,onDismissRequest={open=false}) {
                     (listOf("")+catalog?.products.orEmpty().map { it.category }.distinct()).forEach { c ->
-                        DropdownMenuItem(text={Text(c.ifBlank { "All product families" })},onClick={category=c;open=false})
+                        DropdownMenuItem(text={Text(if(c.isBlank())ui("All product families")else productLabel(c))},onClick={category=c;open=false})
                     }
                 }
-                Text("${groups.size} groups · ${groups.sumOf { it.variants.size }} variants · ${active.size} linked shop variants",style=MaterialTheme.typography.bodySmall)
+                Text(ui("${groups.size} groups · ${groups.sumOf { it.variants.size }} variants · ${active.size} linked shop variants"),style=MaterialTheme.typography.bodySmall)
             }
-            if (error != null) item { Text(error!!,color=MaterialTheme.colorScheme.error) }
-            if (catalog==null && error==null) item { Text("Loading local reference library…") }
+            if (error != null) item { Text(ui(error!!),color=MaterialTheme.colorScheme.error) }
+            if (catalog==null && error==null) item { Text(ui("Loading local reference library…")) }
             items(groups.take(limit),key={it.id}) { group ->
                 var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
                 Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                    Text(group.name,style=MaterialTheme.typography.titleMedium)
-                    Text("${group.category} · PDF p.${group.page}",style=MaterialTheme.typography.bodySmall)
+                    group.imageAsset?.let { AsyncImage("file:///android_asset/$it","Source illustration of ${group.name}",Modifier.fillMaxWidth().height(130.dp)) }
+                    Text(ui(if(group.imageAsset!=null) "Manufacturer illustration; size or colour may vary." else "No matched product picture"),style=MaterialTheme.typography.labelSmall)
+                    Text(productLabel(group.name),style=MaterialTheme.typography.titleMedium)
+                    if(LocalUiLanguage.current!="en")Text(group.name,style=MaterialTheme.typography.labelSmall)
+                    Text(ui("${group.category} · PDF p.${group.page}"),style=MaterialTheme.typography.bodySmall)
                     if(group.priceListLabel.isNotBlank()) Text(group.priceListLabel,style=MaterialTheme.typography.bodySmall)
                     Row {
-                        TextButton(onClick={expanded=!expanded}) { Text(if(expanded) "Hide variants" else "Choose sizes (${group.variants.size})") }
-                        TextButton(onClick={page=group.page}) { Text("Source page") }
+                        TextButton(onClick={expanded=!expanded}) { Text(ui(if(expanded) "Hide variants" else "Choose sizes (${group.variants.size})")) }
+                        TextButton(onClick={page=group.page}) { Text(ui("Source page")) }
                     }
                     if(expanded) group.variants.forEach { variant ->
                         HorizontalDivider()
@@ -84,24 +90,24 @@ fun ReferenceScreen(vm: InventoryViewModel) {
                                 onCheckedChange={vm.selectReference(variant.id,it)},modifier=Modifier.testTag("reference-select-${variant.id}"))
                             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)) {
                                 Text(variant.shopSpec(),style=MaterialTheme.typography.bodyMedium)
-                                Text(if(variant.id in active) "Carried · shop price confirmed · quantity unknown" else "Stock unconfirmed · reference only",style=MaterialTheme.typography.labelSmall)
+                                Text(ui(if(variant.id in active) "Carried · shop price confirmed · quantity unknown" else "Stock unconfirmed · reference only"),style=MaterialTheme.typography.labelSmall)
                                 Text(variant.prices.joinToString("\n") { (label,value) -> "Source $label: ₹$value" }.ifBlank { "Source price not resolved. Read the PDF." },style=MaterialTheme.typography.bodySmall)
-                                if(variant.issues.isNotEmpty()) Text(variant.issues.joinToString("\n"),color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)
+                                if(variant.issues.isNotEmpty()) Text(ui(variant.issues.joinToString("\n")),color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)
                                 var details by remember { mutableStateOf(false) }
-                                TextButton(onClick={details=!details}) { Text(if(details) "Hide source fields" else "Show exact source row") }
+                                TextButton(onClick={details=!details}) { Text(ui(if(details) "Hide source fields" else "Show exact source row")) }
                                 if(details) Text(variant.fields.joinToString("\n") { (k,v) -> "$k: $v" }.ifBlank { variant.rawRow },style=MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
                 } }
             }
-            if(groups.size>limit) item { OutlinedButton(onClick={limit+=20}) { Text("Show more groups") } }
+            if(groups.size>limit) item { OutlinedButton(onClick={limit+=20}) { Text(ui("Show more groups")) } }
         }
         Surface(shadowElevation=4.dp) { Column(Modifier.fillMaxWidth().padding(14.dp)) {
-            Text("${selected.count { it !in active }} selected · not saved yet",style=MaterialTheme.typography.bodySmall)
+            Text(ui("${selected.count { it !in active }} selected · not saved yet"),style=MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Button(onClick=vm::reviewReferences,enabled=selected.any { it !in active },modifier=Modifier.weight(1f)) { Text("Review carried products") }
-                TextButton(onClick={vm.referenceSelected.value=emptySet()}) { Text("Clear") }
+                Button(onClick=vm::reviewReferences,enabled=selected.any { it !in active },modifier=Modifier.weight(1f)) { Text(ui("Review carried products")) }
+                TextButton(onClick={vm.referenceSelected.value=emptySet()}) { Text(ui("Clear")) }
             }
         } }
     }
@@ -116,11 +122,11 @@ fun SourcePriceNote(vm: InventoryViewModel, id: String) {
     var page by remember { mutableStateOf<Int?>(null) }
     Surface(color=MaterialTheme.colorScheme.secondaryContainer,shape=MaterialTheme.shapes.small) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
-            Text("Reference source · PDF p.${product?.page ?: "?"} · cover effective 1 Jan 2026",style=MaterialTheme.typography.labelMedium)
+            Text(ui("Reference source · PDF p.${product?.page ?: "?"} · cover effective 1 Jan 2026"),style=MaterialTheme.typography.labelMedium)
             product?.priceListLabel?.takeIf { it.isNotBlank() }?.let { Text(it,style=MaterialTheme.typography.bodySmall) }
             Text(variant?.prices?.joinToString("\n") { (key,value)->"$key: ₹$value" }?.ifBlank { "No resolved source price" } ?: "Source link: $id",style=MaterialTheme.typography.bodySmall)
-            Text("Source prices are not your confirmed selling price. Confirm that you carry this variant, its specification, selling unit and tax label. Quantity remains unknown.",style=MaterialTheme.typography.bodySmall)
-            product?.let { TextButton(onClick={page=it.page}) { Text("Read source page") } }
+            Text(ui("Source prices are not your confirmed selling price. Confirm that you carry this variant, its specification, selling unit and tax label. Quantity remains unknown."),style=MaterialTheme.typography.bodySmall)
+            product?.let { TextButton(onClick={page=it.page}) { Text(ui("Read source page")) } }
         }
     }
     page?.let { PdfSourceDialog(it) {page=null} }
@@ -152,19 +158,19 @@ private fun PdfSourceDialog(initialPage: Int, close: () -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest=close,properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
         Surface(Modifier.fillMaxSize().padding(8.dp)) { Column(Modifier.padding(10.dp)) {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                TextButton(onClick={page--},enabled=page>1) {Text("Previous")}
-                Text("PDF page $page / 92")
-                TextButton(onClick={page++},enabled=page<92) {Text("Next")}
+                TextButton(onClick={page--},enabled=page>1) {Text(ui("Previous"))}
+                Text(ui("PDF page $page / 92"))
+                TextButton(onClick={page++},enabled=page<92) {Text(ui("Next"))}
             }
             bitmap?.let { image ->
                 Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().transformable(transform)) {
                     Image(image.asImageBitmap(),"Original pricelist page $page",Modifier.fillMaxSize().graphicsLayer(scaleX=zoom,scaleY=zoom,translationX=pan.x,translationY=pan.y))
                 }
-                Text("Zoom to read · drag to move",style=MaterialTheme.typography.bodySmall)
+                Text(ui("Zoom to read · drag to move"),style=MaterialTheme.typography.bodySmall)
                 Slider(value=zoom,onValueChange={zoom=it;if(it==1f)pan=Offset.Zero},valueRange=1f..4f)
             }
             if(bitmap==null) Text(error ?: "Loading page…",Modifier.weight(1f))
-            TextButton(onClick=close,modifier=Modifier.fillMaxWidth()) {Text("Close source")}
+            TextButton(onClick=close,modifier=Modifier.fillMaxWidth()) {Text(ui("Close source"))}
         } }
     }
 }
