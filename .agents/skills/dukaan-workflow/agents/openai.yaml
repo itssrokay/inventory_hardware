@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dukaan project workflow"
+  short_description: "Build carefully and leave a useful project history"
+  default_prompt: "Use $dukaan-workflow to implement this change and record its outcome and decisions."

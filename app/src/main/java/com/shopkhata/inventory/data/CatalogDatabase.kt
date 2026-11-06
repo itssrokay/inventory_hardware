@@ -2,6 +2,8 @@ package com.shopkhata.inventory.data
 
 import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "item")
@@ -11,8 +13,8 @@ data class ItemEntity(
     val photoPath: String? = null, val zone: String = "", val locationNote: String = "",
     val createdAt: Long, val updatedAt: Long,
 )
-@Entity(tableName = "variant", foreignKeys = [ForeignKey(entity = ItemEntity::class, parentColumns = ["id"], childColumns = ["itemId"], onDelete = ForeignKey.CASCADE)], indices = [Index("itemId")])
-data class VariantEntity(@PrimaryKey(autoGenerate = true) val id: Long = 0, val itemId: Long, val spec: String, val unit: String, val pricePaise: Long, val priceUpdatedAt: Long)
+@Entity(tableName = "variant", foreignKeys = [ForeignKey(entity = ItemEntity::class, parentColumns = ["id"], childColumns = ["itemId"], onDelete = ForeignKey.CASCADE)], indices = [Index("itemId"), Index(value = ["sourceReferenceId"], unique = true)])
+data class VariantEntity(@PrimaryKey(autoGenerate = true) val id: Long = 0, val itemId: Long, val spec: String, val unit: String, val pricePaise: Long, val priceUpdatedAt: Long, val sourceReferenceId: String? = null)
 @Entity(tableName = "alias", primaryKeys = ["itemId", "text"], foreignKeys = [ForeignKey(entity = ItemEntity::class, parentColumns = ["id"], childColumns = ["itemId"], onDelete = ForeignKey.CASCADE)], indices = [Index("itemId")])
 data class AliasEntity(val itemId: Long, val text: String)
 @Entity(tableName = "price_history", foreignKeys = [ForeignKey(entity = VariantEntity::class, parentColumns = ["id"], childColumns = ["variantId"], onDelete = ForeignKey.CASCADE)], indices = [Index("variantId")])
@@ -49,12 +51,19 @@ interface CatalogDao {
     @Query("DELETE FROM item") suspend fun clearItems()
     @Query("DELETE FROM search_miss") suspend fun clearMisses()
     @Query("SELECT * FROM price_history") suspend fun allHistory(): List<PriceHistoryEntity>
+    @Query("SELECT * FROM variant WHERE sourceReferenceId = :referenceId LIMIT 1") suspend fun referenceVariant(referenceId: String): VariantEntity?
     @Query("SELECT * FROM search_miss") suspend fun allMisses(): List<SearchMissEntity>
 }
-@Database(entities = [ItemEntity::class, VariantEntity::class, AliasEntity::class, PriceHistoryEntity::class, SearchMissEntity::class, ItemFts::class], version = 1, exportSchema = true)
+@Database(entities = [ItemEntity::class, VariantEntity::class, AliasEntity::class, PriceHistoryEntity::class, SearchMissEntity::class, ItemFts::class], version = 2, exportSchema = true)
 abstract class CatalogDatabase : RoomDatabase() {
     abstract fun catalog(): CatalogDao
     companion object {
-        fun open(context: Context) = Room.databaseBuilder(context, CatalogDatabase::class.java, "catalog.db").build()
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE variant ADD COLUMN sourceReferenceId TEXT")
+                db.execSQL("CREATE UNIQUE INDEX index_variant_sourceReferenceId ON variant(sourceReferenceId)")
+            }
+        }
+        fun open(context: Context) = Room.databaseBuilder(context, CatalogDatabase::class.java, "catalog.db").addMigrations(MIGRATION_1_2).build()
     }
 }

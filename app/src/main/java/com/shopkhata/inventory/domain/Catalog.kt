@@ -13,8 +13,8 @@ data class Product(
     val zone: String = "", val locationNote: String = "", val updatedAt: Long = 0,
     val variants: List<ProductVariant> = emptyList(),
 )
-data class ProductVariant(val id: Long, val spec: String, val unit: String, val pricePaise: Long, val updatedAt: Long)
-data class VariantDraft(val spec: String = "", val unit: String = "piece", val price: String = "")
+data class ProductVariant(val id: Long, val spec: String, val unit: String, val pricePaise: Long, val updatedAt: Long, val sourceReferenceId: String? = null)
+data class VariantDraft(val spec: String = "", val unit: String = "piece", val price: String = "", val discount: String = "", val sourceReferenceId: String? = null)
 data class ItemDraft(
     val name: String = "", val brand: String = "", val category: String = "",
     val aliases: String = "", val zone: String = "", val locationNote: String = "",
@@ -25,18 +25,25 @@ data class ItemDraft(
         name.isBlank() -> "Enter an item name."
         variants.isEmpty() -> "Add at least one size and price."
         variants.any { it.unit !in units } -> "Choose a valid price unit."
-        variants.any { paise(it.price) == null } -> "Enter a valid price, up to two decimal places, for every size."
+        variants.any { discountedPaise(it.price, it.discount) == null } -> "Enter a valid price and a discount from 0 to 100%, with up to two decimal places."
         variants.map { normalize(it.spec) to it.unit }.distinct().size != variants.size -> "Each size and unit must be unique."
         else -> null
     }
 }
 fun Product.draft() = ItemDraft(name, brand, category, aliases.joinToString(", "), zone, locationNote, photoPath,
-    variants.map { VariantDraft(it.spec, it.unit, decimalPrice(it.pricePaise)) }, id)
+    variants.map { VariantDraft(it.spec, it.unit, decimalPrice(it.pricePaise), sourceReferenceId = it.sourceReferenceId) }, id)
 fun paise(price: String): Long? = try {
     val decimal = BigDecimal(price.trim())
     if (decimal < BigDecimal.ZERO || decimal > BigDecimal("100000000")) null
     else decimal.setScale(2, RoundingMode.UNNECESSARY).movePointRight(2).longValueExact()
 } catch (_: Exception) { null }
+fun discountedPaise(price: String, discount: String = ""): Long? {
+    val base = paise(price) ?: return null
+    if (discount.isBlank()) return base
+    val basisPoints = paise(discount)?.takeIf { it <= 10000 } ?: return null
+    return BigDecimal.valueOf(base).multiply(BigDecimal.valueOf(10000 - basisPoints))
+        .divide(BigDecimal.valueOf(10000), 0, RoundingMode.HALF_UP).longValueExact()
+}
 fun decimalPrice(value: Long): String = BigDecimal.valueOf(value, 2).stripTrailingZeros().toPlainString()
 fun rupees(value: Long): String = "₹" + java.text.NumberFormat.getNumberInstance(Locale.forLanguageTag("en-IN")).apply {
     maximumFractionDigits = 2
@@ -53,7 +60,7 @@ fun normalize(value: String): String {
         .replace(Regex("(\\d)\\s*(?:feet|foot|ft)\\b"), "$1 ft")
     return text.replace(Regex("[^\\p{L}\\p{M}\\p{N}.]+"), " ").trim().replace(Regex("\\s+"), " ")
 }
-private val fillers = setOf("price", "of", "the", "rate", "ka", "ki", "ke", "kya", "hai", "kitna", "kitne", "batao", "chahiye", "please", "do", "you", "have", "what", "is", "का", "की", "के", "दाम", "रेट", "है", "क्या", "कितना", "बताओ")
+private val fillers = setOf("price", "of", "the", "rate", "ka", "ki", "ke", "kya", "hai", "kitna", "kitne", "batao", "chahiye", "please", "do", "you", "have", "what", "is", "का", "की", "के", "दाम", "रेट", "है", "क्या", "कितना", "बताओ", "only", "from", "by", "show", "me", "all", "items", "products", "brand", "just", "sirf", "sirph", "केवल", "सिर्फ", "or")
 fun searchTokens(query: String): List<String> = normalize(query).split(" ").filter { it.isNotBlank() && it !in fillers }
 fun ftsQuery(query: String) = searchTokens(query).joinToString(" OR ") { "\"${it.replace("\"", "") }\"*" }
 
@@ -70,17 +77,34 @@ fun similarity(a: String, b: String): Double {
     }
     return 1.0 - d[a.length][b.length].toDouble() / maxOf(a.length, b.length)
 }
+data class SearchIntent(val brands: Set<String>, val keywords: String)
+fun searchIntent(products: List<Product>, query: String): SearchIntent {
+    var remaining = " ${normalize(query)} "
+    val found = linkedSetOf<String>()
+    products.map { it.brand }.filter { it.isNotBlank() }.distinctBy(::normalize).sortedByDescending { it.length }.forEach { brand ->
+        val phrase = " ${normalize(brand)} "
+        if (remaining.contains(phrase)) { found += normalize(brand); remaining = remaining.replace(phrase, " ") }
+    }
+    return SearchIntent(found, remaining.trim())
+}
+fun singularWord(value: String): String = when {
+    value.length > 4 && Regex("(?:ches|shes|xes|zes|sses)$").containsMatchIn(value) -> value.dropLast(2)
+    value.length > 3 && value.endsWith("s") && !value.endsWith("ss") -> value.dropLast(1)
+    else -> value
+}
 data class SearchHit(val product: Product, val variants: List<ProductVariant>, val score: Double)
 object CatalogSearch {
     fun search(products: List<Product>, query: String, ftsIds: Set<Long> = emptySet()): List<SearchHit> {
-        val tokens = searchTokens(query)
-        if (tokens.isEmpty()) return products.sortedByDescending { it.updatedAt }.map { SearchHit(it, it.variants, 1.0) }
+        val intent = searchIntent(products, query)
+        val catalog = products.filter { intent.brands.isEmpty() || normalize(it.brand) in intent.brands }
+        val tokens = searchTokens(intent.keywords).map(::singularWord)
+        if (tokens.isEmpty()) return catalog.sortedByDescending { it.updatedAt }.map { SearchHit(it, it.variants, 1.0) }
         val phrase = tokens.joinToString(" ")
         val size = Regex("\\d+(?:\\.\\d+)?(?:\\s+(?:inch|mm|ft))?").find(phrase)?.value
-        return products.mapNotNull { product ->
+        return catalog.mapNotNull { product ->
             val terms = listOf(product.name, product.brand, product.category) + product.aliases + product.variants.map { it.spec }
             val normalized = terms.map(::normalize)
-            val words = normalized.flatMap { it.split(" ") }.filter { it.isNotBlank() }
+            val words = normalized.flatMap { it.split(" ") }.filter { it.isNotBlank() }.map(::singularWord)
             val scores = tokens.map { token -> words.maxOfOrNull { word ->
                 when {
                     word == token -> 1.0

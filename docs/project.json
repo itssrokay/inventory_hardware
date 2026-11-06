@@ -1,0 +1,258 @@
+{
+  "name": "Dukaan",
+  "updated": "2026-11-06",
+  "stage": "First working build",
+  "summary": "The Android app has a public test APK. A separate localhost web preview is available for quick UI and workflow checks. The next gate is real use on the shop owner’s Android phone.",
+  "links": [
+    {
+      "label": "Open web preview",
+      "url": "/"
+    },
+    {
+      "label": "Download Android APK",
+      "url": "https://github.com/itssrokay/inventory_hardware/releases/latest/download/Dukaan-debug.apk"
+    },
+    {
+      "label": "GitHub repository",
+      "url": "https://github.com/itssrokay/inventory_hardware"
+    }
+  ],
+  "tracks": [
+    {
+      "name": "Android app",
+      "status": "Local 0.3.0 test build",
+      "summary": "Offline catalog plus a separate Prince reference library. Select carried variants, review blank selling prices and units, and retain source links through migration and backups. Existing image, search, price/history and backup flows remain."
+    },
+    {
+      "name": "Local web preview",
+      "status": "Local only",
+      "summary": "Independent browser catalog with a separate searchable reference library, source-page viewer and reviewed activation. Source list rates never become selling prices automatically."
+    },
+    {
+      "name": "Release",
+      "status": "v0.1.0 public",
+      "summary": "Public release remains v0.1.0. Android 0.3.0, the local web preview and reference-library changes have not been published."
+    },
+    {
+      "name": "Shop validation",
+      "status": "Not yet verified",
+      "summary": "Daily counter use, actual catalog quality, phone speech service and real-device performance still need a trial."
+    },
+    {
+      "name": "Project memory",
+      "status": "Shared locally",
+      "summary": "One workflow for Codex/Claude, append-only outcomes and ADRs, generated Markdown and the read-only project cockpit. Claude runtime is not installed here."
+    }
+  ],
+  "next": [
+    {
+      "title": "Choose the products actually carried",
+      "reason": "The imported reference library is hidden from the shop catalog with stock unconfirmed. The owner still needs to select carried variants and confirm selling prices and units."
+    },
+    {
+      "title": "Try it on the owner’s Android phone",
+      "reason": "Check voice recognition, real product names, photos and lookup speed during daily counter use."
+    },
+    {
+      "title": "Capture photos inside the Android app",
+      "reason": "The current build imports gallery photos; direct camera capture remains."
+    },
+    {
+      "title": "Add a weekly backup reminder",
+      "reason": "Export and restore work, but regular backups still rely on the owner remembering."
+    },
+    {
+      "title": "Preserve unsaved drafts after process termination",
+      "reason": "Drafts survive rotation but are not yet persisted if Android kills the process."
+    }
+  ],
+  "architecture": {
+    "lanes": [
+      {
+        "id": "android",
+        "title": "Android · the daily shop app",
+        "summary": "Local lookups and manual edits need no internet. Only explicit language-understanding requests go online.",
+        "nodes": [
+          {
+            "id": "phone",
+            "title": "Compose screens",
+            "role": "client",
+            "detail": "Search, manual editing, reviewed AI entry and price cards. Cropping and discount calculations run locally.",
+            "path": "app/src/main/java/com/shopkhata/inventory/ui/DukaanApp.kt"
+          },
+          {
+            "id": "room",
+            "title": "Room + FTS4",
+            "role": "storage",
+            "detail": "Local items, aliases, sizes, prices in paise, history and search misses.",
+            "path": "app/src/main/java/com/shopkhata/inventory/data/CatalogRepository.kt"
+          },
+          {
+            "id": "phone_ai",
+            "title": "OpenAI client",
+            "role": "ai",
+            "detail": "Responses API with strict JSON schemas; results go to review before saving. Explicit image parsing and category suggestions return to editable review.",
+            "path": "app/src/main/java/com/shopkhata/inventory/ai/OpenAiClient.kt"
+          },
+          {
+            "id": "phone_keys",
+            "title": "Android Keystore",
+            "role": "credentials",
+            "detail": "Encrypts the phone’s API key; no key is bundled in the APK.",
+            "path": "app/src/main/java/com/shopkhata/inventory/security/KeyStore.kt"
+          },
+          {
+            "id": "phone_files",
+            "title": "App-private photos + ZIP",
+            "role": "backup",
+            "detail": "Photos and version 2 ZIP backups retain reference links. Validated restore accepts versions 1 and 2; no static reference duplication or credentials.",
+            "path": "app/src/main/java/com/shopkhata/inventory/backup/BackupManager.kt"
+          },
+          {
+            "id": "cloud_android",
+            "title": "OpenAI Responses",
+            "role": "external",
+            "detail": "Receives explicitly submitted text/images for parsing or categorization; query rewriting also receives category names."
+          },
+          {
+            "id": "android_reference",
+            "title": "Reference JSON + original PDF",
+            "role": "reference",
+            "detail": "Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links.",
+            "path": "app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt"
+          }
+        ],
+        "edges": [
+          {
+            "from": "phone",
+            "to": "room",
+            "label": "offline search and save"
+          },
+          {
+            "from": "phone",
+            "to": "phone_ai",
+            "label": "online parse or rewrite"
+          },
+          {
+            "from": "phone_ai",
+            "to": "phone_keys",
+            "label": "read encrypted key"
+          },
+          {
+            "from": "phone_ai",
+            "to": "cloud_android",
+            "label": "HTTPS, store false"
+          },
+          {
+            "from": "phone",
+            "to": "phone_files",
+            "label": "photos and backup"
+          },
+          {
+            "from": "phone",
+            "to": "android_reference",
+            "label": "browse; select for review"
+          }
+        ]
+      },
+      {
+        "id": "web",
+        "title": "Web · the localhost preview",
+        "summary": "A separate preview on this computer. Browser data is not synchronized with Android.",
+        "nodes": [
+          {
+            "id": "browser",
+            "title": "Browser UI",
+            "role": "client",
+            "detail": "Dependency-free HTML/CSS/JS with editable demo items and real workflows. Cropping and discount calculations run locally.",
+            "path": "web/public/app.js"
+          },
+          {
+            "id": "indexeddb",
+            "title": "Browser IndexedDB",
+            "role": "storage",
+            "detail": "Separate browser catalog and history; clearly labeled sample items.",
+            "path": "web/public/app.js"
+          },
+          {
+            "id": "localhost",
+            "title": "Local Node server",
+            "role": "ai",
+            "detail": "Binds to 127.0.0.1. Sends AI requests while keeping the development key server-side. Explicit image parsing and category suggestions return to editable review.",
+            "path": "web/server.mjs"
+          },
+          {
+            "id": "local_key",
+            "title": "Ignored local key",
+            "role": "credentials",
+            "detail": "Loaded from the process environment or .env.local; never served to browser JavaScript.",
+            "path": "web/server.mjs"
+          },
+          {
+            "id": "web_backup",
+            "title": "Browser JSON backup",
+            "role": "backup",
+            "detail": "Web-preview-only export and restore; not the Android ZIP format.",
+            "path": "web/public/app.js"
+          },
+          {
+            "id": "cloud_web",
+            "title": "OpenAI Responses",
+            "role": "external",
+            "detail": "Receives explicitly submitted text/images for parsing or categorization; query rewriting also receives category names."
+          },
+          {
+            "id": "web_reference",
+            "title": "Separate reference library",
+            "role": "reference",
+            "detail": "Reads shared source JSON and local PDF/page images through fixed allowlisted routes. Selected variants require blank-price/unit review; only confirmed shop variants enter IndexedDB.",
+            "path": "web/public/reference.js"
+          }
+        ],
+        "edges": [
+          {
+            "from": "browser",
+            "to": "indexeddb",
+            "label": "offline search and save"
+          },
+          {
+            "from": "browser",
+            "to": "localhost",
+            "label": "same-origin POST"
+          },
+          {
+            "from": "localhost",
+            "to": "local_key",
+            "label": "server-only key"
+          },
+          {
+            "from": "localhost",
+            "to": "cloud_web",
+            "label": "HTTPS, store false"
+          },
+          {
+            "from": "browser",
+            "to": "web_backup",
+            "label": "export and restore"
+          },
+          {
+            "from": "browser",
+            "to": "web_reference",
+            "label": "browse; select for review"
+          }
+        ]
+      }
+    ],
+    "boundaries": [
+      "Prices belong to size/unit variants and are integer paise. GST is an explicit label, not inferred tax.",
+      "AI parsing never writes catalog data; the user edits and confirms the review first.",
+      "Android and web catalogs are independent. Their backups are not interchangeable.",
+      "Schemas and listing instructions are shared from app/src/main/assets/.",
+      "Project history is repository documentation; it does not contain API keys, private customer data or the shop catalog.",
+      "The /project cockpit reads allowlisted project documentation. It has no catalog-writing or file-editing API.",
+      "Images are cropped locally and sent to AI only for an explicit Review items or Suggest category request. Missing or unreadable prices must be reviewed and entered before saving.",
+      "Discount percentages are a one-time calculator, not a persistent pricing rule: only the rounded net selling price is saved. Reopening an editor starts from that price without reapplying the discount.",
+      "A manufacturer pricelist never proves shop stock or selling prices. Reference variants start unconfirmed and hidden from shop search. Only explicit owner confirmation creates carried shop variants; quantities remain unknown. See ADR-007."
+    ]
+  }
+}

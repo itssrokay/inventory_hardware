@@ -103,6 +103,20 @@ class CatalogIntegrationTest {
         assertEquals(45000L, db.catalog().all().single().variants.first().pricePaise)
         source.delete(); invalid.delete(); Unit
     }
+    @Test fun discountSavesNetPriceAndDoesNotCompoundOnReopen() = runBlocking {
+        val id=repo.save(listOf(ItemDraft("Socket",brand="Prince",variants=listOf(VariantDraft("20 mm","piece","100","25"))))).single()
+        val product=db.catalog().item(id)!!.product()
+        assertEquals(7500L,product.variants.single().pricePaise)
+        val reopened=product.draft()
+        assertEquals("75",reopened.variants.single().price)
+        assertEquals("",reopened.variants.single().discount)
+        repo.save(listOf(reopened),true)
+        assertEquals(7500L,db.catalog().item(id)!!.variants.single().pricePaise)
+        assertTrue(db.catalog().allHistory().isEmpty())
+        repo.save(listOf(reopened.copy(variants=listOf(VariantDraft("20 mm","piece","100","50")))),true)
+        val history=db.catalog().allHistory().single()
+        assertEquals(7500L,history.oldPrice);assertEquals(5000L,history.newPrice)
+    }
     @Test fun apiKeyIsEncryptedAtRest() {
         // Synthetic key only; no live credentials or network access in tests.
         val keys = ApiKeyStore(context)

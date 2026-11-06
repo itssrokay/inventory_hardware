@@ -21,7 +21,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
     suspend fun export(): File = withContext(Dispatchers.IO) {
         val dao = db.catalog()
         val (rows, histories, misses) = db.withTransaction { Triple(dao.all(), dao.allHistory(), dao.allMisses()) }
-        val root = JSONObject().put("version", 1).put("exported_at", System.currentTimeMillis())
+        val root = JSONObject().put("version", 2).put("exported_at", System.currentTimeMillis())
             .put("tax_label", context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("tax_label", "GST not specified"))
             .put("items", JSONArray(rows.map { row ->
                 val item = row.item
@@ -30,7 +30,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                     .put("photo", if (item.photoPath != null) "photos/${item.id}.jpg" else JSONObject.NULL)
                     .put("aliases", JSONArray(row.aliases.map { it.text }))
                     .put("variants", JSONArray(row.variants.map {
-                        JSONObject().put("id", it.id).put("spec", it.spec).put("unit", it.unit).put("price_paise", it.pricePaise).put("updated_at", it.priceUpdatedAt)
+                        JSONObject().put("id", it.id).put("spec", it.spec).put("unit", it.unit).put("price_paise", it.pricePaise).put("updated_at", it.priceUpdatedAt).put("source_reference_id", it.sourceReferenceId ?: JSONObject.NULL)
                     }))
             })).put("price_history", JSONArray(histories.map {
                 JSONObject().put("variant_id", it.variantId).put("old_price", it.oldPrice).put("new_price", it.newPrice).put("changed_at", it.changedAt)
@@ -81,9 +81,10 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                 }
             }
             val json = JSONObject(requireNotNull(manifest) { "catalog.json is missing." })
-            require(json.getInt("version") == 1) { "Unsupported backup version." }
+            require(json.getInt("version") in 1..2) { "Unsupported backup version." }
             val itemIds = mutableSetOf<Long>()
             val variantIds = mutableSetOf<Long>()
+            val referenceIds = mutableSetOf<String>()
             val rows = json.getJSONArray("items").objects().map { item ->
                 val id = item.exactLong("id")
                 require(id > 0 && itemIds.add(id) && item.getString("name").isNotBlank()) { "Invalid catalog item." }
@@ -97,7 +98,10 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                     val variantId = value.exactLong("id")
                     val price = value.exactLong("price_paise")
                     require(variantId > 0 && variantIds.add(variantId) && price in 0..10_000_000_000L && value.getString("unit") in units) { "Invalid price or unit in backup." }
-                    VariantEntity(variantId, id, value.getString("spec"), value.getString("unit"), price, value.getLong("updated_at"))
+                    val referenceId = if (!value.has("source_reference_id") || value.isNull("source_reference_id")) null else value.getString("source_reference_id").also {
+                        require(it.length in 1..250 && referenceIds.add(it)) { "Invalid or duplicate reference link." }
+                    }
+                    VariantEntity(variantId, id, value.getString("spec"), value.getString("unit"), price, value.getLong("updated_at"), referenceId)
                 }
                 require(variants.isNotEmpty() && variants.map { it.spec to it.unit }.distinct().size == variants.size) { "Invalid variants." }
                 val aliases = item.getJSONArray("aliases").let { a -> (0 until a.length()).map { AliasEntity(id, a.getString(it)) } }

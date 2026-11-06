@@ -1,0 +1,1 @@
+{"type":"object","additionalProperties":false,"properties":{"category":{"type":"string"},"aliases":{"type":"array","items":{"type":"string"}},"reason":{"type":"string"}},"required":["category","aliases","reason"]}

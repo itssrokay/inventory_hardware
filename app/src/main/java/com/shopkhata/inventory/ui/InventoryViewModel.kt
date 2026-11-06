@@ -1,6 +1,7 @@
 package com.shopkhata.inventory.ui
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -29,6 +30,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val query = MutableStateFlow("")
     val searchCategory = MutableStateFlow<String?>(null)
     val listing = MutableStateFlow("")
+    val listingImage = MutableStateFlow<String?>(null)
     val review = MutableStateFlow<List<ItemDraft>>(emptyList())
     val warnings = MutableStateFlow<List<String>>(emptyList())
     val busy = MutableStateFlow(false)
@@ -39,20 +41,30 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val language = MutableStateFlow(prefs.getString("language", "hi-IN")!!)
     val model = MutableStateFlow(prefs.getString("model", "gpt-4.1-mini")!!)
     val shareFile = MutableStateFlow<File?>(null)
+    val referenceCatalog = MutableStateFlow<ReferenceCatalog?>(null)
+    val referenceError = MutableStateFlow<String?>(null)
+    val referenceSelected = MutableStateFlow<Set<String>>(emptySet())
     private val rewrites = MutableStateFlow<Pair<String, List<String>>?>(null)
     private var fullEdit = false
     private val messagesChannel = Channel<String>(Channel.BUFFERED)
     val messages = messagesChannel.receiveAsFlow()
     val hits = combine(products, query.debounce(100), rewrites, searchCategory) { products, query, rewrite, category ->
-        Triple(products.filter { category == null || it.category == category }, query, rewrite)
+        val brands = searchIntent(products, query).brands
+        Triple(products.filter { (category == null || it.category == category) && (brands.isEmpty() || normalize(it.brand) in brands) }, query, rewrite)
     }
         .mapLatest { (catalog, query, rewrite) -> withContext(Dispatchers.Default) {
             val local = repository.search(catalog, query)
-            if (rewrite?.first == query) (local + rewrite.second.flatMap { repository.search(catalog, it) }).distinctBy { it.product.id }.sortedByDescending { it.score }.take(10)
+            val brands = searchIntent(catalog, query).brands
+            val constrained = catalog.filter { brands.isEmpty() || normalize(it.brand) in brands }
+            if (rewrite?.first == query) (local + rewrite.second.flatMap { repository.search(constrained, it) }).distinctBy { it.product.id }.sortedByDescending { it.score }.take(10)
             else local
         } }.catch { message("Search failed. Please try again."); emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            try { referenceCatalog.value = ReferenceStore.load(application) }
+            catch (_: Exception) { referenceError.value = "Reference library could not be loaded. Your shop catalog is unchanged." }
+        }
         runCatching { keys.importDebugKey() }.onFailure { message("Could not import the development key. Add it in Settings.") }
         keyConfigured.value = keys.read() != null
     }
@@ -71,6 +83,20 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         if (busy.value) return
         fullEdit = false; review.value = listOf(ItemDraft()); warnings.value = emptyList(); tab.value = 1
     }
+    fun selectReference(id: String, selected: Boolean) {
+        referenceSelected.value = if (selected) referenceSelected.value + id else referenceSelected.value - id
+    }
+    fun reviewReferences() {
+        if (busy.value) return
+        if (review.value.isNotEmpty()) { message("Save or discard your current review before activating reference variants."); return }
+        val catalog = referenceCatalog.value ?: return
+        val drafts = referenceDrafts(catalog, referenceSelected.value, products.value)
+        if (drafts.isEmpty()) { message("Select variants that you carry first."); return }
+        fullEdit = false
+        review.value = drafts
+        warnings.value = listOf("You are confirming that you carry these selected variants. Confirm every specification, selling unit, price and tax label. Source list prices remain separate. No stock quantity is recorded.")
+        tab.value = 1
+    }
     fun edit(product: Product) {
         if (busy.value) return
         fullEdit = true; review.value = listOf(product.draft()); warnings.value = emptyList(); tab.value = 1
@@ -79,11 +105,11 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun removeDraft(index: Int) { review.value = review.value.filterIndexed { i, _ -> i != index } }
     fun cancelReview() { if (!busy.value) { review.value = emptyList(); warnings.value = emptyList(); fullEdit = false } }
     fun parse() = operation {
-        val parsed = ai.parse(listing.value)
+        val parsed = ai.parse(listing.value, listingImage.value, products.value.map { it.category }.distinct())
         fullEdit = false
         review.value = parsed.items.map { draft ->
             val duplicate = CatalogSearch.duplicate(draft, products.value)
-            if (duplicate == null) draft else draft.copy(targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
+            if (duplicate == null) draft.copy(photoPath = if (parsed.items.size == 1) listingImage.value else null) else draft.copy(targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
                 aliases = (duplicate.aliases + draft.aliases.split(',').map { it.trim() }).distinct().joinToString(", "))
         }
         warnings.value = parsed.warnings
@@ -94,13 +120,26 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         items.forEach { require(it.error() == null) { it.error() ?: "Check the item." } }
         require(items.map { normalize(it.name) to normalize(it.brand) }.distinct().size == items.size) { "Combine duplicate items into one card before saving." }
         val result = repository.save(items, fullEdit)
-        review.value = emptyList(); warnings.value = emptyList(); listing.value = ""; fullEdit = false
+        referenceSelected.value = emptySet()
+        review.value = emptyList(); warnings.value = emptyList(); listing.value = ""; listingImage.value = null; fullEdit = false
         query.value = ""; searchCategory.value = null; rewrites.value = null; tab.value = 0
         message("${result.size} ${if (result.size == 1) "item" else "items"} saved on this phone.")
     }
     fun photo(index: Int, uri: Uri) = operation {
         val path = photos.import(uri)
         if (index in review.value.indices) updateDraft(index, review.value[index].copy(photoPath = path))
+    }
+    fun croppedPhoto(index: Int?, bitmap: Bitmap) = operation {
+        val path = photos.save(bitmap)
+        if (index == null) listingImage.value = path
+        else if (index in review.value.indices) updateDraft(index, review.value[index].copy(photoPath = path))
+    }
+    fun categorize(index: Int) = operation {
+        val draft = review.value[index]
+        val suggestion = ai.categorize(draft.name, draft.brand, draft.photoPath, products.value.map { it.category }.distinct())
+        val current = review.value.getOrNull(index) ?: return@operation
+        updateDraft(index, current.copy(category = suggestion.category, aliases = (current.aliases.split(',').map { it.trim() } + suggestion.aliases).filter { it.isNotBlank() }.distinct().joinToString(", ")))
+        message(suggestion.reason.ifBlank { "Category suggested. Review it before saving." })
     }
     fun price(product: Product, variant: ProductVariant, value: String, onSaved: () -> Unit) = operation {
         repository.updatePrice(product.id, variant.id, value); onSaved(); message("Price updated.")

@@ -5,7 +5,7 @@ import com.shopkhata.inventory.domain.*
 import kotlinx.coroutines.flow.map
 
 fun ItemWithRelations.product() = Product(item.id, item.name, item.brand, item.category, aliases.map { it.text }, item.photoPath, item.zone, item.locationNote, item.updatedAt,
-    variants.sortedBy { it.id }.map { ProductVariant(it.id, it.spec, it.unit, it.pricePaise, it.priceUpdatedAt) })
+    variants.sortedBy { it.id }.map { ProductVariant(it.id, it.spec, it.unit, it.pricePaise, it.priceUpdatedAt, it.sourceReferenceId) })
 class CatalogRepository(val db: CatalogDatabase) {
     private val dao = db.catalog()
     val products = dao.observe().map { list -> list.map { it.product() } }
@@ -27,10 +27,13 @@ class CatalogRepository(val db: CatalogDatabase) {
             val id = if (existing == null) dao.insertItem(item) else item.id.also { dao.updateItem(item) }
             val keptIds = mutableSetOf<Long>()
             draft.variants.forEach { value ->
-                val old = existing?.variants?.firstOrNull { normalize(it.spec) == normalize(value.spec) && it.unit == value.unit }
-                val price = requireNotNull(paise(value.price))
+                val linked = value.sourceReferenceId?.let { dao.referenceVariant(it) }
+                require(linked == null || linked.itemId == id) { "This reference variant is already carried. Edit its existing shop item instead." }
+                val old = linked ?: existing?.variants?.firstOrNull { normalize(it.spec) == normalize(value.spec) && it.unit == value.unit }
+                require(old?.sourceReferenceId == null || value.sourceReferenceId == null || old.sourceReferenceId == value.sourceReferenceId) { "These source variants need distinct specifications." }
+                val price = requireNotNull(discountedPaise(value.price, value.discount))
                 val variant = VariantEntity(old?.id ?: 0, id, value.spec.trim(), value.unit, price,
-                    if (old?.pricePaise == price) old.priceUpdatedAt else now)
+                    if (old?.pricePaise == price) old.priceUpdatedAt else now, value.sourceReferenceId ?: old?.sourceReferenceId)
                 if (old == null) keptIds += dao.insertVariant(variant)
                 else {
                     keptIds += old.id
