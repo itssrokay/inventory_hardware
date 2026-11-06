@@ -2,6 +2,24 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-07 · DONE · Published Dukaan v0.5.0 and verified the APK download
+
+`WORK-011` — The latest public GitHub APK now includes searchable categories, faster reference search, read-only product/discount views and related-product browsing. The README first link downloads v0.5.0.
+
+**Changed**
+
+- Set Android versionName 0.5.0/versionCode 5 and matching web metadata. Release v0.5.0 targets source commit 759b0081a379d88b6992c83604a4a05a751a6a07 and contains Dukaan-debug.apk plus its SHA-256 file. Updated current project status and README availability.
+
+**Verification**
+
+- Release candidate built successfully; reran 23 Kotlin unit tests, 33 web tests and 9 journal-helper tests. Lint: zero errors, 16 warnings. The prior 18 emulator feature tests passed on the implementation and were not rerun for the version-only bump.
+- Verified APK manifest version 0.5.0/code 5, Android 8 minimum, matching previous debug signing certificate, canonical PDF/catalog and dictionary assets, all 520 picture hashes, and clean source/APK credential scans.
+- GitHub marks v0.5.0 latest and public. Downloaded the README latest APK URL without authentication: HTTP 200, 34725595 bytes, SHA-256 8fc5718b7d3fad969d72c2b6b3dad47e8bfa96adf69c4ebe94d749958e164dd1; downloaded checksum matched. No live OpenAI request.
+
+**Remaining / next**
+
+- Physical-phone input, speech and daily counter use remain untested. Web preview remains an independent local catalog.
+
 ## 2026-11-06 · DONE · Sped up reference typing and added read-only counter browsing
 
 `WORK-010` — Reference typing stays responsive, catalog products open for viewing and temporary discount quotes, and related category/brand products are linked for browsing without merging records.

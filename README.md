@@ -2,7 +2,7 @@
 
 # Dukaan — hardware shop catalog
 
-Published Android test release: **0.4.0**. The first link above downloads this build.
+Published Android test release: **0.5.0**. The first link above downloads this build.
 
 Native Android app built from `plan.md`. It keeps the catalog on one phone and puts selling prices first. No server or account is required for local features.
 
@@ -50,7 +50,7 @@ The preview includes six clearly labeled sample items, Hindi/English typo-tolera
 npm --prefix web test
 ```
 
-Twenty-three tests cover search and strict natural brand filters, prices and discount rounding, crop geometry, duplicates, backup validation, vision/category proxy requests, credential isolation and the read-only project cockpit. Nine Python tests cover the journal helper and shared skill paths. Browser verification also covered Hindi size search, a price change surviving reload, live OpenAI parse → editable review → duplicate update while retaining existing sizes, and manual duplicate suggestions. Voice input depends on browser support and microphone permission.
+Thirty-three tests cover search and strict natural brand filters, prices and discount rounding, crop geometry, duplicates, backup validation, vision/category proxy requests, credential isolation and the read-only project cockpit. Nine Python tests cover the journal helper and shared skill paths. Browser verification also covered Hindi size search, a price change surviving reload, live OpenAI parse → editable review → duplicate update while retaining existing sizes, and manual duplicate suggestions. Voice input depends on browser support and microphone permission.
 
 ## Build and run
 
@@ -131,18 +131,24 @@ build/reference-import-env/bin/python scripts/extract_reference_images.py app/sr
 
 The 0.4.0 build passed **21 Kotlin unit tests, 16 Android emulator tests, 27 web tests and 9 journal-helper checks**. Android lint reports zero errors (16 warnings). Emulator and browser checks covered language persistence, Hindi product search, reviewed source-photo transfer, custom-photo priority, unchanged canonical units and photo/language backup round trips. The original localhost catalog remains at six samples with no activated reference variants. No live OpenAI call was used for these changes.
 
-## Category navigation · source update after 0.4.0
+## Category navigation · 0.5.0
 
 Android and the local web preview now use a searchable category picker with counts instead of a growing horizontal list. The same picker finds reference product families and reuses existing categories during item entry. An explicit Uncategorized group includes items with no saved category. Selected filters stay visible; **Search all items** removes the category filter while keeping the query.
 
-Android search now returns every matching product, using a lazy list to render visible cards. The web renders 36 cards at a time with **Show more items**, so later matches remain reachable without creating thousands of cards at once. Category names, prices and stock status are unchanged. These source changes are newer than the published v0.4.0 APK.
+Android search now returns every matching product, using a lazy list to render visible cards. The web renders 36 cards at a time with **Show more items**, so later matches remain reachable without creating thousands of cards at once. Category names, prices and stock status are unchanged. These changes are included in the published v0.5.0 APK.
 
 Next usability priorities: pin frequently used categories for a one-tap counter shortcut; add brand and exact-size filters for large plumbing families; provide a reviewed category-merge tool for duplicate names. Category merging must show the affected items before saving, since it changes stored catalog data.
 
-## Counter browsing and responsive reference search · source update after 0.4.0
+## Counter browsing and responsive reference search · 0.5.0
 
 Tap a product or its price to **view** sizes and saved selling prices. Enter a discount percentage to preview a quote from each saved price; repeated calculations never compound or save a change. Use **Edit price** or **Edit item** when you intend to change the catalog. Related products are clickable suggestions from the same category, with matching brands first; **Browse this category** shows the full group. Products and their technical variants remain separate records.
 
 Reference search now builds a normalized index once. Web typing keeps the same input and caret, waits 150 ms before updating only the results, and handles Hindi input composition. Broad matches stay collapsed until opened. Android builds and filters its index off the UI thread, with a 120 ms pause before filtering. Query changes cancel obsolete work. Local Node measurements for a warmed “coupler” results render improved from about 62 ms to under 1 ms; this measures search/markup generation, not total browser rendering or physical-phone input latency.
 
-Validation: **23 Kotlin unit tests, 18 Android emulator tests, 33 web tests and 9 journal-helper tests** passed; Android lint has zero errors and 16 warnings. Emulator checks covered view → discount → related item without changing stored prices/history, explicit price editing, and reference activation after async search. Browser checks covered retained focus/caret, rapid query replacement, exact source codes, invalid discounts, unchanged saved prices on reopening and related-item navigation. These source/local-build changes are newer than the published v0.4.0 APK.
+Validation: **23 Kotlin unit tests, 18 Android emulator tests, 33 web tests and 9 journal-helper tests** passed; Android lint has zero errors and 16 warnings. Emulator checks covered view → discount → related item without changing stored prices/history, explicit price editing, and reference activation after async search. Browser checks covered retained focus/caret, rapid query replacement, exact source codes, invalid discounts, unchanged saved prices on reopening and related-item navigation. These changes are included in the published v0.5.0 APK.
+
+## Android release · 0.5.0
+
+The first README link downloads **v0.5.0**, including the category picker, faster reference search, price/discount viewing and related-product browsing. The release includes `Dukaan-debug.apk` and `Dukaan-debug.apk.sha256`. The signing certificate matches v0.4.0, so an existing installation can update in place.
+
+Release-candidate checks reran **23 Kotlin unit tests, 33 web tests and 9 journal-helper tests**, with zero lint errors (16 warnings). The 18 emulator feature tests above passed on the implementation before the version-only release bump and were not rerun for that metadata change. Bundled reference assets and picture hashes match source; source/APK credential scans passed. No API key is included. The web preview remains local and independent of Android.
