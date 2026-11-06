@@ -2,6 +2,26 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-06 · DONE · Published product pictures and Hindi/Hinglish modes
+
+`WORK-008` — Android v0.4.0 and the independent localhost preview show matched source pictures and offer English, Hindi and Hinglish display modes.
+
+**Changed**
+
+- Added 520 source-table pictures for 2,404 variants in a source-hash-bound manifest, reviewed photo transfer and custom-photo priority; unmatched products are explicitly labeled.
+- Added a shared offline UI dictionary, familiar product aliases and display-language preferences preserved in Android/web backups. Original source details, custom names, prices and canonical units remain intact; no stock is inferred.
+- Published v0.4.0 APK and checksum to public GitHub; README first link still directly downloads the latest APK. ADR-008 records presentation and source-image boundaries.
+
+**Verification**
+
+- Passed 21 Kotlin unit tests, 16 Android emulator tests, 27 web tests and 9 journal-helper tests. Android lint: zero errors, 16 warnings.
+- Browser checks: Hindi/Hinglish switching and persistence, Hindi brand/product search, source picture in reviewed entry, unchanged piece unit under the Hindi display label and preserved prices. Original localhost catalog remains six samples with no activated reference variants.
+- Verified all 520 bundled image hashes and shared source/dictionary assets in APK, matching previous signing certificate, source/APK credential scans and anonymous latest-download HTTP 200 with matching SHA-256 0da468c9383b7cb5a1f50452d23fb767b6e1754cefdf6e945e5d2ca57ce6f3c7. No live OpenAI call.
+
+**Remaining / next**
+
+- Physical-phone speech and daily counter use remain untested. Supplier technical text stays original; unmatched product groups have no substituted picture.
+
 ## 2026-11-06 · DECISION · Display languages and source pictures without changing catalog facts
 
 `ADR-008` — English, Hindi and Hinglish are local presentation choices; manufacturer pictures are source-bound illustrations. Neither changes saved names, source IDs, units, prices or stock status.

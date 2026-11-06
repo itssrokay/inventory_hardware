@@ -2,7 +2,7 @@
 
 # Dukaan — hardware shop catalog
 
-Current development build: **0.4.0**. Published Android test release: **0.3.0**. The first link above downloads the latest published build.
+Published Android test release: **0.4.0**. The first link above downloads this build.
 
 Native Android app built from `plan.md`. It keeps the catalog on one phone and puts selling prices first. No server or account is required for local features.
 
