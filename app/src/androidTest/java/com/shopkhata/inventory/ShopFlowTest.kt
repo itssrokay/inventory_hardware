@@ -30,6 +30,7 @@ class ShopFlowTest {
         compose.onNodeWithTag("search").performTextInput("tala")
         compose.waitUntil(10000) { compose.onAllNodesWithText("₹450").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("₹450").performClick()
+        compose.onAllNodesWithText("Edit price").onFirst().performScrollTo().performClick()
         compose.onNodeWithText("Rupees per piece").performTextReplacement("475.50")
         compose.onNodeWithText("Save price").performClick()
         compose.waitUntil(10000) { compose.onAllNodesWithText("₹475.5").fetchSemanticsNodes().isNotEmpty() }

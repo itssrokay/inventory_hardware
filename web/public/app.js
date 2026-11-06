@@ -1,8 +1,8 @@
 import {categoryChoices,matchingCategories,inCategory} from './categories.js';
 import { cropImage } from './crop.js';
 import {configureTranslations,setLanguageMode,languageMode,translate,localizeUi,searchQuery,productText} from './i18n.js';
-import {activeReferences, referenceDrafts, referenceView, sourceNote, withReferencePictures, linkedReferenceProduct, linkedPicture, referenceImageUrl, referencePhotoData} from './reference.js';
-import { UNITS, currency, decimal, normalize, search, duplicate, validateDraft, validateBackup, paise, discountedPaise, searchIntent } from './domain.js';
+import {activeReferences, referenceDrafts, referenceView, referenceResultsView, prepareReferenceSearch, sourceNote, withReferencePictures, linkedReferenceProduct, linkedPicture, referenceImageUrl, referencePhotoData} from './reference.js';
+import { UNITS, currency, decimal, normalize, search, duplicate, validateDraft, validateBackup, paise, discountedPaise, searchIntent, relatedProducts } from './domain.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -79,7 +79,17 @@ function writeData(data) { return new Promise((resolve, reject) => {
 const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', query: '', category: null, resultLimit: 36, layout: 'grid', drafts: [], fullEdit: false, listing: '', listingImage: null, warnings: [], rewrites: null, busy: false,
   data: null, config: { aiConfigured: false, model: '' } };
 const referenceState = {catalog:null,query:'',category:'',scope:'all',selected:new Set(),limit:20};
-function renderReference() { $('#main').innerHTML=referenceView(referenceState.catalog,state.data.products,referenceState); }
+let referenceSearchTimer;
+function renderReference() { clearTimeout(referenceSearchTimer);$('#main').innerHTML=referenceView(referenceState.catalog,state.data.products,referenceState); }
+function scheduleReferenceSearch() {
+  clearTimeout(referenceSearchTimer);
+  const status=$('#reference-search-status');if(status&&status.textContent!==translate('Searching…'))status.textContent=translate('Searching…');
+  referenceSearchTimer=setTimeout(()=>{
+    if(state.page!=='reference'||!$('#reference-results'))return;
+    $('#reference-results').innerHTML=referenceResultsView(referenceState.catalog,state.data.products,referenceState);
+    if($('#reference-search-status'))$('#reference-search-status').textContent='';
+  },150);
+}
 function languageSelector() {
   return `<label class="language-control"><span>App language</span><select class="language-switch" data-ui-language aria-label="App language">${[['en','English'],['hi','हिन्दी'],['hinglish','Hinglish']].map(([value,label])=>`<option value="${value}" ${value===(state.data.settings.uiLanguage||'en')?'selected':''}>${label}</option>`).join('')}</select></label>`;
 }
@@ -137,7 +147,7 @@ function renderResults() {
     `<div class="catalog-toolbar"><div class="category-tabs" role="group" aria-label="Filter categories"><button class="button secondary" data-browse-categories>${icon('catalog')}Browse categories <span>${categories.length}</span></button>${state.category!==null?`<span class="active-category" data-preserve-text>${esc(state.category||translate('Uncategorized'))}</span><button class="text-button" data-all-categories>All items</button>`:'<span class="tiny">Search across all categories</span>'}</div><div class="view-toggle"><button class="icon-button ${state.layout === 'grid' ? 'selected' : ''}" data-layout="grid" aria-label="Grid view" aria-pressed="${state.layout === 'grid'}">${icon('catalog')}</button><button class="icon-button ${state.layout === 'list' ? 'selected' : ''}" data-layout="list" aria-label="List view" aria-pressed="${state.layout === 'list'}">${icon('list')}</button></div></div>
 
     ${searchIntent(products,state.query).brands.length?`<div class="natural-filter"><span>Brand: ${esc(searchIntent(products,state.query).brands.join(', '))}</span><small>Understood from your search · strict brand filter</small></div>`:''}
-    <div class="results-caption"><span>${state.query ? `${hits.length} matching ${hits.length === 1 ? 'item' : 'items'}` : `${hits.length} ${hits.length === 1 ? 'item' : 'items'} on your shelves`}</span><span>Tap a price to update it ${icon('edit')}</span></div>
+    <div class="results-caption"><span>${state.query ? `${hits.length} matching ${hits.length === 1 ? 'item' : 'items'}` : `${hits.length} ${hits.length === 1 ? 'item' : 'items'} on your shelves`}</span><span>Tap a product to view prices and discounts ${icon('edit')}</span></div>
     <section class="product-grid ${state.layout === 'list' ? 'list-view' : ''}" aria-label="Catalog results">${hits.slice(0,state.resultLimit).map(productCard).join('') || `<div class="empty-state">${icon('search')}<h2>${products.length ? 'No matching items yet' : 'Ready for your first item?'}</h2><p>${products.length ? 'Try a different name, spelling or size. Or let smart search help.' : 'Add an item with its sizes and selling prices to make your shelves searchable.'}</p>${state.category!==null?'<button class="button secondary" data-all-categories>Search all items</button>':''}<button class="button primary" data-action="${products.length ? 'smart' : 'new'}">${icon(products.length ? 'spark' : 'plus')}${products.length ? 'Try smart search' : 'Add your first item'}</button></div>`}</section>${hits.length>state.resultLimit?`<div class="load-more"><p>${translate('Showing {0} of {1} items').replace('{0}',state.resultLimit).replace('{1}',hits.length)}</p><button class="button secondary" data-more-items>Show more items</button></div>`:''}`;
 }
 function productCard({ product: p, variants }) {
@@ -145,8 +155,8 @@ function productCard({ product: p, variants }) {
   const source=linkedReferenceProduct(referenceState.catalog,p);
   const originalName=source?`${source.category.split(' · ')[0]} ${source.name}`:null;
   const displayName=p.name===originalName?productText(p.name):p.name;
-  return `<article class="product-card" data-product="${esc(p.id)}"><div class="product-top"><div class="product-thumb ${theme}">${illustration(p)}</div><div class="product-title"><span class="category-label">${esc(p.category || 'General')}</span><h2 data-preserve-text>${esc(displayName)}</h2>${displayName!==p.name?`<small data-preserve-text>${esc(p.name)}</small>`:''}<p>${esc(p.brand || 'Unbranded')}${p.demo ? ' <span class="sample-label">SAMPLE</span>' : ''}</p></div><button class="icon-button edit-item" data-edit="${esc(p.id)}" aria-label="Edit ${esc(p.name)}">${icon('edit')}</button></div>
-    <div class="variant-list">${variants.map(v => `<button class="price-row" data-price="${esc(v.id)}" data-item="${esc(p.id)}" aria-label="Update ${esc(p.name)} ${esc(v.spec)} price"><span class="variant-spec">${esc(v.spec || 'Standard')}<span>${esc(translate("per"))} ${esc(translate(v.unit))}</span><small class="price-date">${esc(translate(`Updated ${date(v.updatedAt)}${v.sourceReferenceId?' · Confirmed shop price · reference linked':''}`))}</small></span><strong>${currency(v.pricePaise)}</strong>${icon('edit')}</button>`).join('')}</div>
+  return `<article class="product-card" data-product="${esc(p.id)}" data-view-product="${esc(p.id)}"><div class="product-top"><div class="product-thumb ${theme}">${illustration(p)}</div><div class="product-title"><span class="category-label">${esc(p.category || 'General')}</span><h2 data-preserve-text><button class="product-open" data-view-product="${esc(p.id)}">${esc(displayName)}</button></h2>${displayName!==p.name?`<small data-preserve-text>${esc(p.name)}</small>`:''}<p>${esc(p.brand || 'Unbranded')}${p.demo ? ' <span class="sample-label">SAMPLE</span>' : ''}</p></div><button class="icon-button edit-item" data-edit="${esc(p.id)}" aria-label="Edit ${esc(p.name)}">${icon('edit')}</button></div>
+    <div class="variant-list">${variants.map(v => `<button class="price-row" data-view-product="${esc(p.id)}" aria-label="View ${esc(p.name)} ${esc(v.spec)} price"><span class="variant-spec">${esc(v.spec || 'Standard')}<span>${esc(translate("per"))} ${esc(translate(v.unit))}</span><small class="price-date">${esc(translate(`Updated ${date(v.updatedAt)}${v.sourceReferenceId?' · Confirmed shop price · reference linked':''}`))}</small></span><strong>${currency(v.pricePaise)}</strong>${icon('arrow')}</button>`).join('')}</div>
     <div class="product-meta"><span>${p.zone ? `${icon('shop')}${esc(p.zone)}` : esc(state.data.settings.tax)}</span><span>${p.demo ? 'Sample · ' : ''}Price updated ${date(Math.max(...p.variants.map(v=>v.updatedAt)))}</span></div></article>`;
 }
 function emptyDraft() { return { name: '', brand: '', category: '', aliases: '', zone: '', locationNote: '', photo: null, targetId: null, variants: [{ spec: '', unit: 'piece', price: '', discount: '' }] }; }
@@ -211,6 +221,25 @@ function renderCategoryChoices(query) {
 function resetCategory() {state.category=null;state.resultLimit=36;renderResults();}
 function confirmDialog(title, text, action, label = 'Confirm') {
   openDialog(`<form><div class="dialog-heading"><h2>${esc(title)}</h2><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><p>${esc(text)}</p><div class="dialog-actions"><button type="button" data-action="close-dialog" class="button secondary">Cancel</button><button class="button primary">${esc(label)}</button></div><p class="dialog-error" role="alert"></p></form>`, async () => { await action(); $('#dialog').close(); shell(); });
+}
+let viewedProductId=null;
+function viewProduct(id) {
+  const product=state.data.products.find(p=>p.id===id);if(!product)return;
+  viewedProductId=id;
+  const source=linkedReferenceProduct(referenceState.catalog,product);
+  const displayName=product.name===`${source?.category.split(' · ')[0]} ${source?.name}`?productText(product.name):product.name;
+  const related=relatedProducts(product,state.data.products);
+  openDialog(`<div class="dialog-heading product-details-heading"><div class="product-view-thumb">${illustration(product)}</div><div><p class="eyebrow">Product details</p><h2 data-preserve-text>${esc(displayName)}</h2>${displayName!==product.name?`<small data-preserve-text>${esc(product.name)}</small>`:''}<p data-preserve-text>${esc([product.brand,product.category].filter(Boolean).join(' · '))}</p></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><div class="product-view-body"><p class="view-facts"><span data-preserve-text>${esc([product.zone,product.locationNote].filter(Boolean).join(' · '))}</span><span>${esc(state.data.settings.tax)}</span></p><label class="view-discount-control"><span>Discount (%)</span><input id="view-discount" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="e.g. 10"></label><p class="tiny">Preview only. Saved prices stay unchanged.</p><div id="view-prices"></div>${product.category?`<section class="related-products"><h3>Related products</h3><p class="tiny">Suggested from the same category; matching brands appear first.</p><button class="text-button" data-browse-related="${esc(product.id)}">Browse this category</button>${related.map(other=>`<button class="category-choice" data-view-product="${esc(other.id)}"><span data-preserve-text>${esc(other.name)}</span><small data-preserve-text>${esc(other.brand)}</small></button>`).join('')}</section>`:''}</div><div class="dialog-actions"><button type="button" class="button secondary" data-view-edit-item="${esc(product.id)}">Edit item</button><button type="button" class="button primary" data-action="close-dialog">Close</button></div>`);
+  renderViewPrices();
+}
+function renderViewPrices() {
+  const product=state.data.products.find(p=>p.id===viewedProductId);if(!product||!$('#view-prices'))return;
+  const discount=$('#view-discount').value;
+  const valid=discountedPaise('1',discount)!==null;
+  $('#view-prices').innerHTML=(!valid?'<p class="form-error">Enter a discount from 0 to 100, with up to two decimal places.</p>':'')+product.variants.map(variant=>{
+    const net=valid?discountedPaise(decimal(variant.pricePaise),discount):null;
+    return `<section class="view-variant"><strong data-preserve-text>${esc(variant.spec||translate('Standard'))}</strong><p class="view-base" data-preserve-text>${currency(variant.pricePaise)} / ${esc(translate(variant.unit))}</p>${discount!==''&&net!==null?`<p class="view-net"><span>After discount</span>: <strong data-preserve-text>${currency(net)} / ${esc(translate(variant.unit))}</strong></p>`:''}<div class="view-price-actions"><small>${translate(`Updated ${date(variant.updatedAt)}`)}</small><button class="text-button" data-price="${esc(variant.id)}" data-item="${esc(product.id)}">Edit price</button></div></section>`;
+  }).join('');
 }
 function priceDialog(itemId, variantId) {
   const product = state.data.products.find(p => p.id === itemId); const variant = product?.variants.find(v => v.id === variantId); if (!variant) return;
@@ -343,7 +372,7 @@ async function restore(file) {
 
 // Event delegation keeps dynamically rendered cards and review forms interactive.
 document.addEventListener('click', event => {
-  const button = event.target.closest('button, [data-page]'); if (!button || button.disabled) return;
+  const button = event.target.closest('button, [data-page], [data-view-product]'); if (!button || button.disabled) return;
   const run = async () => {
     if (button.hasAttribute('data-reference-clear')) {referenceState.selected.clear();renderReference();return;}
     if (button.hasAttribute('data-reference-more')) {referenceState.limit+=20;renderReference();return;}
@@ -365,6 +394,9 @@ document.addEventListener('click', event => {
     if (button.dataset.layout) { state.layout = button.dataset.layout; renderResults(); return; }
     if (button.hasAttribute('data-categorize')) return categorize(Number(button.dataset.categorize));
     if (button.hasAttribute('data-recrop')) {const i=Number(button.dataset.recrop);const image=await cropImage(state.drafts[i].photo);if(image){state.drafts[i].photo=image;renderAdd();}return;}
+    if (button.hasAttribute('data-view-product')) return viewProduct(button.dataset.viewProduct);
+    if (button.hasAttribute('data-view-edit-item')) {$('#dialog').close();return beginEdit(button.dataset.viewEditItem);}
+    if (button.hasAttribute('data-browse-related')) {const product=state.data.products.find(p=>p.id===button.dataset.browseRelated);state.category=product.category;state.query='';state.rewrites=null;state.resultLimit=36;$('#dialog').close();renderCatalog();return;}
     if (button.dataset.edit) return beginEdit(button.dataset.edit);
     if (button.dataset.price) return priceDialog(button.dataset.item, button.dataset.price);
     if(state.busy && (button.hasAttribute('data-remove-draft')||button.hasAttribute('data-separate')||button.hasAttribute('data-merge'))) return toast('Wait for the suggestion to finish.');
@@ -398,10 +430,11 @@ document.addEventListener('click', event => {
 });
 document.addEventListener('input', event => {
   const input = event.target;
+  if(input.id==='view-discount') {renderViewPrices();return;}
   if(input.id==='category-query') {renderCategoryChoices(input.value);return;}
   if(input.id==='reference-query') {
     referenceState.query=input.value;referenceState.limit=20;
-    const start=input.selectionStart;renderReference();const replacement=$('#reference-query');replacement.focus();replacement.setSelectionRange(start,start);return;
+    if(!event.isComposing)scheduleReferenceSearch();return;
   }
   if (['quick-price','quick-discount'].includes(input.id)) {updateQuickNet();return;}
   if (input.id === 'search') { state.query = input.value; state.rewrites = null; state.resultLimit=36; renderResults(); return; }
@@ -413,6 +446,7 @@ document.addEventListener('input', event => {
   if(input.hasAttribute('data-discount')) draft.variants[Number(input.dataset.discount)].discount=input.value;
   draft.variants.forEach((v,vi)=>{const output=$(`[data-net="${Number(card.dataset.draft)}-${vi}"]`);if(output){const amount=discountedPaise(v.price,v.discount);output.textContent=amount===null?'Enter a valid price and discount':`Selling price: ${currency(amount)} per ${v.unit}`;}});
 });
+document.addEventListener('compositionend',event=>{if(event.target.id==='reference-query')scheduleReferenceSearch();});
 document.addEventListener('focusout', event => {
   const input = event.target;
   if (!['name', 'brand'].includes(input.dataset?.field)) return;
@@ -459,10 +493,16 @@ try {
   try { state.config = await fetch('/api/config').then(r => r.json()); } catch { /* Offline catalog remains available. */ }
   try { const response=await fetch('/reference/catalog.json');if(response.ok)referenceState.catalog=await response.json(); } catch { /* Shop data still works if the reference asset is unavailable. */ }
   if(referenceState.catalog) {try {const pictures=await fetch('/reference/images.json').then(r=>r.json());referenceState.catalog=withReferencePictures(referenceState.catalog,pictures);}catch {}}
+  if(referenceState.catalog)prepareReferenceSearch(referenceState.catalog);
   shell();
-  let pendingLocalization=false;
-  new MutationObserver(()=>{
+  let pendingLocalization=false;const localizationRoots=new Set();
+  new MutationObserver(records=>{
+    for(const record of records) {const root=record.target.nodeType===Node.ELEMENT_NODE?record.target:record.target.parentElement;if(root)localizationRoots.add(root);}
     if(pendingLocalization)return;pendingLocalization=true;
-    queueMicrotask(()=>{pendingLocalization=false;localizeUi(document);});
+    queueMicrotask(()=>{
+      pendingLocalization=false;
+      const roots=[...localizationRoots].filter(root=>root.isConnected);localizationRoots.clear();
+      for(const root of roots)if(!roots.some(other=>other!==root&&other.contains(root)))localizeUi(root);
+    });
   }).observe(document.body,{childList:true,subtree:true,characterData:true});
 } catch (error) { $('#app').innerHTML = `<div class="startup-error"><h1>Let’s get your shop open.</h1><p>${esc(error.message)}</p><p>Enable browser storage, then reload this page.</p></div>`; }

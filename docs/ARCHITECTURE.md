@@ -25,13 +25,13 @@ flowchart LR
 
 | Component | Responsibility | Source |
 | --- | --- | --- |
-| Compose screens | Search, manual editing, reviewed AI entry and price cards. Cropping and discount calculations run locally. | [source](../app/src/main/java/com/shopkhata/inventory/ui/DukaanApp.kt) |
+| Compose screens | Search, manual editing, reviewed AI entry and price cards. Cropping and discount calculations run locally. Product views, temporary discount quotes and related-product links do not save edits. | [source](../app/src/main/java/com/shopkhata/inventory/ui/DukaanApp.kt) |
 | Room + FTS4 | Local items, aliases, sizes, prices in paise, history and search misses. | [source](../app/src/main/java/com/shopkhata/inventory/data/CatalogRepository.kt) |
 | OpenAI client | Responses API with strict JSON schemas; results go to review before saving. Explicit image parsing and category suggestions return to editable review. | [source](../app/src/main/java/com/shopkhata/inventory/ai/OpenAiClient.kt) |
 | Android Keystore | Encrypts the phone’s API key; no key is bundled in the APK. | [source](../app/src/main/java/com/shopkhata/inventory/security/KeyStore.kt) |
 | App-private photos + ZIP | Photos and version 2 ZIP backups retain reference links. Validated restore accepts versions 1 and 2; no static reference duplication or credentials. | [source](../app/src/main/java/com/shopkhata/inventory/backup/BackupManager.kt) |
 | OpenAI Responses | Receives explicitly submitted text/images for parsing or categorization; query rewriting also receives category names. | External service |
-| Reference JSON + original PDF | Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority. | [source](../app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt) |
+| Reference JSON + original PDF | Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority. A normalized search index is built and filtered on Dispatchers.Default, separately from the input state. | [source](../app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt) |
 
 ## Web · the localhost preview
 
@@ -56,7 +56,7 @@ flowchart LR
 
 | Component | Responsibility | Source |
 | --- | --- | --- |
-| Browser UI | Dependency-free HTML/CSS/JS with editable demo items and real workflows. Cropping and discount calculations run locally. | [source](../web/public/app.js) |
+| Browser UI | Dependency-free HTML/CSS/JS with editable demo items and real workflows. Cropping and discount calculations run locally. Reference typing keeps a stable input and updates a debounced indexed-results region; product views and quote discounts remain read-only. | [source](../web/public/app.js) |
 | Browser IndexedDB | Separate browser catalog and history; clearly labeled sample items. | [source](../web/public/app.js) |
 | Local Node server | Binds to 127.0.0.1. Sends AI requests while keeping the development key server-side. Explicit image parsing and category suggestions return to editable review. | [source](../web/server.mjs) |
 | Ignored local key | Loaded from the process environment or .env.local; never served to browser JavaScript. | [source](../web/server.mjs) |
@@ -87,3 +87,4 @@ flowchart LR
 - [ADR-006: Use discounts as a one-time selling-price calculator](decisions/ADR-006.md)
 - [ADR-007: Keep manufacturer references separate from carried shop variants](decisions/ADR-007.md)
 - [ADR-008: Display languages and source pictures without changing catalog facts](decisions/ADR-008.md)
+- [ADR-009: Separate price viewing from saved price changes](decisions/ADR-009.md)

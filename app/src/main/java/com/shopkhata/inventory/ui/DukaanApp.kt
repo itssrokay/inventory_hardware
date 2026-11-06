@@ -161,6 +161,7 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
     val tax by vm.taxLabel.collectAsStateWithLifecycle()
     val category by vm.searchCategory.collectAsStateWithLifecycle()
     var editing by remember { mutableStateOf<Pair<Product, ProductVariant>?>(null) }
+    var viewingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var choosingCategory by rememberSaveable { mutableStateOf(false) }
     val categories = remember(products) { products.groupingBy { it.category }.eachCount().toSortedMap().map { CategoryChoice(it.key, it.value) } }
     val displayed = hits
@@ -224,19 +225,24 @@ private fun CatalogScreen(vm: InventoryViewModel, voice: () -> Unit) {
                 }
             }
             if (rewriting) item { LinearProgressIndicator(Modifier.fillMaxWidth()); Text(ui("Understanding your search…"), color = Muted, fontSize = 12.sp) }
-            items(displayed, key = { it.product.id }) { hit -> ProductCard(hit, tax, reference?.productFor(hit.product.variants.firstOrNull { it.sourceReferenceId!=null }?.sourceReferenceId), { vm.edit(hit.product) }) { editing = hit.product to it } }
+            items(displayed, key = { it.product.id }) { hit -> ProductCard(hit, tax, reference?.productFor(hit.product.variants.firstOrNull { it.sourceReferenceId!=null }?.sourceReferenceId), { vm.edit(hit.product) }, { viewingId = hit.product.id }) { editing = hit.product to it } }
         }
     }
     if (choosingCategory) CategoryPickerDialog(categories, category, { vm.searchCategory.value = it }, { choosingCategory = false })
+    products.firstOrNull { it.id == viewingId }?.let { product ->
+        ProductDetailsDialog(product, products, reference?.productFor(product.variants.firstOrNull { it.sourceReferenceId != null }?.sourceReferenceId), tax,
+            { viewingId = null }, { viewingId = null; vm.edit(product) }, { viewingId = null; editing = product to it },
+            { viewingId = it.id }, { viewingId = null; vm.query.value = ""; vm.searchCategory.value = product.category })
+    }
     editing?.let { (product, variant) -> PriceDialog(vm, product, variant) { editing = null } }
 }
 @Composable
-private fun ProductCard(hit: SearchHit, tax: String, sourceProduct: ReferenceProduct?, edit: () -> Unit, price: (ProductVariant) -> Unit) {
+private fun ProductCard(hit: SearchHit, tax: String, sourceProduct: ReferenceProduct?, edit: () -> Unit, view: () -> Unit, price: (ProductVariant) -> Unit) {
     val context = LocalContext.current
     val imageAsset=sourceProduct?.imageAsset
     val displayName=if(hit.product.name==sourceProduct?.shopName) productLabel(hit.product.name) else hit.product.name
     var expanded by rememberSaveable(hit.product.id) { mutableStateOf(false) }
-    Panel(Modifier.fillMaxWidth()) {
+    Panel(Modifier.fillMaxWidth().clickable(onClick = view).testTag("product-${hit.product.id}")) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             if (hit.product.photoPath != null || imageAsset != null) AsyncImage(hit.product.photoPath?.let { File(context.filesDir, it) } ?: "file:///android_asset/$imageAsset", "Photo of ${hit.product.name}", Modifier.size(62.dp).clip(RoundedCornerShape(14.dp)), contentScale = ContentScale.Fit)
             else Box(Modifier.size(62.dp).clip(RoundedCornerShape(14.dp)).background(Cream), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.Handyman, null, tint = Green) }
@@ -249,7 +255,7 @@ private fun ProductCard(hit: SearchHit, tax: String, sourceProduct: ReferencePro
         }
         HorizontalDivider(color = Border)
         (if (expanded) hit.variants else hit.variants.take(4)).forEach { variant ->
-            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { price(variant) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(onClick = view).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(variant.spec.ifBlank { "Standard" }, fontSize = 14.sp)
                     Text(ui("Price updated ${date(variant.updatedAt)}"), color = Muted, fontSize = 10.sp)
@@ -259,7 +265,7 @@ private fun ProductCard(hit: SearchHit, tax: String, sourceProduct: ReferencePro
                     Text(rupees(variant.pricePaise), fontWeight = FontWeight.Bold, fontSize = 26.sp, color = Green)
                     Text(ui("per ${ui(variant.unit)}"), fontSize = 11.sp, color = Muted)
                 }
-                Spacer(Modifier.width(8.dp)); Icon(Icons.Outlined.Edit, "Edit price", Modifier.size(14.dp), tint = Muted)
+                Spacer(Modifier.width(8.dp)); IconButton(onClick = { price(variant) }) { Icon(Icons.Outlined.Edit, ui("Edit price"), Modifier.size(18.dp), tint = Muted) }
             }
         }
         if (hit.variants.size > 4) TextButton(onClick = { expanded = !expanded }) { Text(ui(if (expanded) "Show fewer sizes" else "Show all ${hit.variants.size} sizes")) }

@@ -121,3 +121,11 @@ export function cropRegion(width, height, frameWidth, frameHeight, zoom, panX, p
   return {left:Math.max(0, Math.min(width-cropWidth, Math.round((width-frameWidth/scale)/2-panX/scale))),
     top:Math.max(0,Math.min(height-cropHeight, Math.round((height-frameHeight/scale)/2-panY/scale))),width:cropWidth,height:cropHeight};
 }
+
+// Related browsing never merges item records or their selling prices.
+export function relatedProducts(product, catalog) {
+  if (!product.category?.trim()) return [];
+  return catalog.filter(other => other.id !== product.id && normalize(other.category) === normalize(product.category))
+    .sort((a,b) => Number(Boolean(product.brand) && normalize(b.brand)===normalize(product.brand)) - Number(Boolean(product.brand) && normalize(a.brand)===normalize(product.brand)) || a.name.localeCompare(b.name) || String(a.id).localeCompare(String(b.id)))
+    .slice(0,6);
+}

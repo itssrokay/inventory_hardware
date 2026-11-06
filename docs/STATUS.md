@@ -2,12 +2,12 @@
 
 Updated: 2026-11-06
 
-Android v0.4.0 remains the published test release. Newer source adds searchable category/family pickers, existing-category reuse during entry and complete large-catalog search. The independent localhost preview includes these changes; category names and stock status remain unchanged.
+Android v0.4.0 remains the published test release. Newer source adds responsive indexed reference search, read-only product details and discount previews, related-product browsing, and searchable categories. The independent localhost preview includes these changes; stored prices, stock status and product identities remain intact.
 
 | Track | State | What works |
 | --- | --- | --- |
-| Android app | 0.4.0 public test build | Adds 520 matched source pictures for 2,404 reference variants, reviewed photo transfer, multilingual display and offline product aliases. Catalog facts, custom names, selling units and custom photos stay intact. Newer local source adds searchable category/family selection, existing-category reuse, filter recovery and all search matches. |
-| Local web preview | Local category-navigation update | Searchable category and reference-family pickers with counts, existing-category reuse, visible filters and clear-to-all search. Product cards load in batches of 36; every match remains reachable. Independent browser storage with English/Hindi/Hinglish modes. |
+| Android app | 0.4.0 public test build | Newer local build supports read-only product/discount views, explicit price editing and related-product links. Reference indexing/filtering runs off the UI thread. Source pictures, display modes, category browsing, backup and catalog boundaries remain intact. |
+| Local web preview | Source update · runs locally | Stable reference input with a cached index and debounced result-only rendering. Read-only price/discount views, related-product browsing, searchable categories and batches of 36 cards. Independent browser storage with English/Hindi/Hinglish modes. |
 | Release | v0.4.0 public | GitHub hosts the 0.4.0 debug APK and SHA-256 file. The README’s first link downloads the latest APK. Source pictures, multilingual Android/web changes and shared project history are on main. |
 | Shop validation | Not yet verified | Daily counter use, actual catalog quality, phone speech service and real-device performance still need a trial. |
 | Project memory | Shared in the repository | One workflow for Codex/Claude, append-only outcomes and ADRs, generated Markdown and the read-only project cockpit. Source is published; a real Claude Code session remains untested. |

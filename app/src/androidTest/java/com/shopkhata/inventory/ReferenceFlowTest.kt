@@ -38,6 +38,7 @@ class ReferenceFlowTest {
         compose.waitUntil(10000){compose.onAllNodesWithText("₹9.5").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("Reference").performClick()
         compose.onNodeWithTag("reference-search").performTextInput("SIM107608")
+        compose.waitUntil(10000){compose.onAllNodesWithText("Choose sizes (1)").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("Choose sizes (1)").performScrollTo().performClick()
         compose.onNodeWithTag("reference-select-$id").performScrollTo().assertIsNotEnabled().assertIsOn()
     }

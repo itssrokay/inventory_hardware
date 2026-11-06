@@ -40,14 +40,12 @@ fun ReferenceScreen(vm: InventoryViewModel) {
     var limit by rememberSaveable(query, category) { mutableIntStateOf(20) }
     var page by remember { mutableStateOf<Int?>(null) }
     val active = remember(shop) { shop.flatMap { it.variants }.mapNotNull { it.sourceReferenceId }.toSet() }
-    val groups = remember(catalog,query,category) {
-        val terms = normalize(query).split(' ').filter { it.isNotEmpty() }
-        val code = query.trim().takeIf { Regex("(?:SIM|IM|IT|IP)\\d{5,8}",RegexOption.IGNORE_CASE).matches(it) }
-        catalog?.products.orEmpty().filter { category == null || it.category == category }.mapNotNull { group ->
-            val names=translations.searchText("Prince ${group.name} ${group.category}")
-            val variants = group.variants.filter { v -> if(code!=null) v.code?.equals(code,ignoreCase=true)==true else terms.all { it in normalize("$names ${v.label} ${v.code} ${v.rawRow}") } }
-            if (variants.isEmpty()) null else group.copy(variants = variants)
-        }
+    val searchIndex by produceState<ReferenceSearchIndex?>(null, catalog) {
+        value = withContext(Dispatchers.Default) { catalog?.let { ReferenceSearchIndex(it, translations) } }
+    }
+    val groups by produceState(emptyList<ReferenceProduct>(), searchIndex, query, category) {
+        kotlinx.coroutines.delay(120)
+        value = withContext(Dispatchers.Default) { searchIndex?.search(query, category).orEmpty() }
     }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f).testTag("reference-list"),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {

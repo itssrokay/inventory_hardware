@@ -1557,6 +1557,50 @@
     "Try smart search": {
       "hi": "स्मार्ट खोज आज़माएँ",
       "hinglish": "Smart search aazmayein"
+    },
+    "Searching…": {
+      "hi": "खोज रहे हैं…",
+      "hinglish": "Khoj rahe hain…"
+    },
+    "Product details": {
+      "hi": "सामान का विवरण",
+      "hinglish": "Samaan ki jaankari"
+    },
+    "Preview only. Saved prices stay unchanged.": {
+      "hi": "सिर्फ हिसाब देखें। सेव किए दाम नहीं बदलेंगे।",
+      "hinglish": "Sirf hisaab dekhein. Save kiye daam nahi badlenge."
+    },
+    "After discount": {
+      "hi": "छूट के बाद",
+      "hinglish": "Chhoot ke baad"
+    },
+    "Edit item": {
+      "hi": "सामान बदलें",
+      "hinglish": "Samaan badlein"
+    },
+    "Enter a discount from 0 to 100, with up to two decimal places.": {
+      "hi": "0 से 100 तक छूट लिखें, अधिकतम दो दशमलव अंक।",
+      "hinglish": "0 se 100 tak chhoot likhein, adhiktam do decimal ank."
+    },
+    "Related products": {
+      "hi": "संबंधित सामान",
+      "hinglish": "Milte-julte samaan"
+    },
+    "Suggested from the same category; matching brands appear first.": {
+      "hi": "इसी श्रेणी के सामान; एक ही ब्रांड के सामान पहले दिखते हैं।",
+      "hinglish": "Isi category ke samaan; ek hi brand ke samaan pehle dikhte hain."
+    },
+    "Browse this category": {
+      "hi": "इस श्रेणी के सामान देखें",
+      "hinglish": "Is category ke samaan dekhein"
+    },
+    "Edit price": {
+      "hi": "दाम बदलें",
+      "hinglish": "Daam badlein"
+    },
+    "Tap a product to view prices and discounts": {
+      "hi": "दाम और छूट देखने के लिए सामान पर टैप करें",
+      "hinglish": "Daam aur chhoot dekhne ke liye samaan par tap karein"
     }
   },
   "terms": {

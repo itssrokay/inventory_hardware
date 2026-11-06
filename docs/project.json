@@ -2,7 +2,7 @@
   "name": "Dukaan",
   "updated": "2026-11-06",
   "stage": "First working build",
-  "summary": "Android v0.4.0 remains the published test release. Newer source adds searchable category/family pickers, existing-category reuse during entry and complete large-catalog search. The independent localhost preview includes these changes; category names and stock status remain unchanged.",
+  "summary": "Android v0.4.0 remains the published test release. Newer source adds responsive indexed reference search, read-only product details and discount previews, related-product browsing, and searchable categories. The independent localhost preview includes these changes; stored prices, stock status and product identities remain intact.",
   "links": [
     {
       "label": "Open web preview",
@@ -21,12 +21,12 @@
     {
       "name": "Android app",
       "status": "0.4.0 public test build",
-      "summary": "Adds 520 matched source pictures for 2,404 reference variants, reviewed photo transfer, multilingual display and offline product aliases. Catalog facts, custom names, selling units and custom photos stay intact. Newer local source adds searchable category/family selection, existing-category reuse, filter recovery and all search matches."
+      "summary": "Newer local build supports read-only product/discount views, explicit price editing and related-product links. Reference indexing/filtering runs off the UI thread. Source pictures, display modes, category browsing, backup and catalog boundaries remain intact."
     },
     {
       "name": "Local web preview",
-      "status": "Local category-navigation update",
-      "summary": "Searchable category and reference-family pickers with counts, existing-category reuse, visible filters and clear-to-all search. Product cards load in batches of 36; every match remains reachable. Independent browser storage with English/Hindi/Hinglish modes."
+      "status": "Source update · runs locally",
+      "summary": "Stable reference input with a cached index and debounced result-only rendering. Read-only price/discount views, related-product browsing, searchable categories and batches of 36 cards. Independent browser storage with English/Hindi/Hinglish modes."
     },
     {
       "name": "Release",
@@ -89,7 +89,7 @@
             "id": "phone",
             "title": "Compose screens",
             "role": "client",
-            "detail": "Search, manual editing, reviewed AI entry and price cards. Cropping and discount calculations run locally.",
+            "detail": "Search, manual editing, reviewed AI entry and price cards. Cropping and discount calculations run locally. Product views, temporary discount quotes and related-product links do not save edits.",
             "path": "app/src/main/java/com/shopkhata/inventory/ui/DukaanApp.kt"
           },
           {
@@ -130,7 +130,7 @@
             "id": "android_reference",
             "title": "Reference JSON + original PDF",
             "role": "reference",
-            "detail": "Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority.",
+            "detail": "Immutable Prince source library with unconfirmed stock, source rates/dates and page provenance. Selection opens editable review with blank shop price/unit; only confirmed variants enter Room with unique source links. A separate source-hash-bound image manifest supplies matched table pictures; owner photos take priority. A normalized search index is built and filtered on Dispatchers.Default, separately from the input state.",
             "path": "app/src/main/java/com/shopkhata/inventory/data/ReferenceStore.kt"
           }
         ],
@@ -176,7 +176,7 @@
             "id": "browser",
             "title": "Browser UI",
             "role": "client",
-            "detail": "Dependency-free HTML/CSS/JS with editable demo items and real workflows. Cropping and discount calculations run locally.",
+            "detail": "Dependency-free HTML/CSS/JS with editable demo items and real workflows. Cropping and discount calculations run locally. Reference typing keeps a stable input and updates a debounced indexed-results region; product views and quote discounts remain read-only.",
             "path": "web/public/app.js"
           },
           {

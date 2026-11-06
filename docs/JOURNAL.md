@@ -2,6 +2,31 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-06 · DONE · Sped up reference typing and added read-only counter browsing
+
+`WORK-010` — Reference typing stays responsive, catalog products open for viewing and temporary discount quotes, and related category/brand products are linked for browsing without merging records.
+
+**Changed**
+
+- Cached normalized source search once for all 4,105 variants. Web retains the search control/caret, handles IME composition and updates only a debounced results region; localization observes changed subtrees. Android indexes and filters off the UI thread. Broad web matches stay collapsed.
+- Added Android/web detail views with exact paise discount previews, explicit edit actions, and up to six related products from the same category with matching brands first. ADR-009 explains read versus edit and grouping boundaries.
+
+**Verification**
+
+- Passed 23 Kotlin unit tests, 18 Android emulator tests, 33 web tests and 9 journal-helper tests. Android build succeeds; lint reports zero errors and 16 warnings. Updated async reference flow waits for final results before interacting.
+- Browser: input markup remained unchanged through coupler typing, focus/caret survived middle insertion, rapid final SIM107608 query showed one correct source variant, invalid 101% discount showed an error, 25% of saved INR 450 previewed INR 337.50, and reopening retained INR 450. Pliers linked to the independent measuring-tape item. No catalog records were changed by these browser checks.
+- Emulator view/discount/related flow preserved saved variant price and empty history; explicit price editing still passed. Local warmed Node coupler search/markup fell from about 62 ms to under 1 ms; index construction took about 80 ms once. These figures exclude browser rendering and physical-phone latency.
+
+**Remaining / next**
+
+- Changes are source/local-build updates; the published APK remains v0.4.0. Related suggestions use current category/brand, not owner-defined collections. Physical-phone input still needs a trial.
+
+## 2026-11-06 · DECISION · Separate price viewing from saved price changes
+
+`ADR-009` — Product browsing, temporary discounts and related-product suggestions are read-only; saving prices remains an explicit edit operation.
+
+[ADR-009: Separate price viewing from saved price changes](decisions/ADR-009.md) · Accepted
+
 ## 2026-11-06 · DONE · Made large catalogs easier to browse
 
 `WORK-009` — Android and localhost web now offer searchable category and reference-family pickers with counts, reuse of existing categories during entry, and a clear way to search all items without losing the query.
