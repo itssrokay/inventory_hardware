@@ -113,7 +113,7 @@ function shell() {
     <div class="sidebar-note"><span class="note-icon">${icon('shield')}</span><strong>Your shop. Your data.</strong><p>This preview saves your catalog in this browser.</p><span class="local-label"><i></i> Running on localhost</span></div>
     <div class="sidebar-bottom"><button class="nav-item ${state.page === 'settings' ? 'active' : ''}" data-page="settings">${icon('settings')}<span>Settings & backup</span></button>
       <a class="android-link" href="https://github.com/itssrokay/inventory_hardware/releases/latest/download/Dukaan-debug.apk" target="_blank" rel="noopener">${icon('download')}<span>Get the Android app</span>${icon('arrow')}</a>
-      <div class="profile"><span class="avatar">D</span><div><strong>My hardware shop</strong><small>Local web preview</small></div><span class="version">v0.5</span></div></div>
+      <div class="profile"><span class="avatar">D</span><div><strong>My hardware shop</strong><small>Local web preview</small></div><span class="version">v0.6</span></div></div>
     </aside><div class="mobile-bar"><a class="brand" href="#catalog"><span class="brand-mark">${icon('shop')}</span>dukaan.</a>${languageSelector()}</div>
     <div class="workspace"><div class="topbar"><span>${icon('shop')} My hardware shop <span class="breadcrumb">/</span> ${esc({ catalog: 'Catalog', reference: 'Reference library', add: 'Add items', history: 'Price history', misses: 'Missed searches', settings: 'Settings' }[state.page])}</span>${languageSelector()}</div>
     <main id="main" tabindex="-1"></main><footer class="page-footer"><span>Made for the way you run your shop.</span><span>हिन्दी, English & Hinglish</span></footer></div>
