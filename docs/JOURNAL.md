@@ -2,6 +2,24 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-08 · DONE · Published v0.6.0 APK with multiple photo albums
+
+`WORK-013` — GitHub latest now serves Android v0.6.0 with product and shelf albums, multi-selection/cropping/cover controls, enlarged galleries and multi-image AI review.
+
+**Changed**
+
+- Set Android versionName 0.6.0/versionCode 6 and matching web metadata. Release v0.6.0 targets 6a0cf92a6f97eb034071ff44ed355656e64885c8 with Dukaan-debug.apk and a portable SHA-256 file. README first link stays the direct latest APK URL; current status now identifies 0.6.0 as published.
+
+**Verification**
+
+- Release rebuild passed 23 Kotlin unit tests, 37 web tests and 9 journal-helper checks; lint has zero errors and 16 warnings. The 22 emulator feature tests passed before the version-only release bump and were not rerun for that metadata change.
+- Verified manifest version 0.6.0/code 6, Android 8 minimum, the same signing certificate as v0.5.0, album/migration code in DEX, shared source/dictionary/instruction assets and all 520 source-picture hashes. Source/APK credential scans passed; no live OpenAI call.
+- GitHub marks v0.6.0 latest/public. Anonymous latest APK HEAD returned HTTP 200 and the public checksum file matched. GitHub-computed full-asset SHA-256 matches the local APK: d519099d4edfc87368408d531f271d93a29231953c0da205de67215a981cd47c; size 34759147 bytes. Availability used HEAD plus checksum/digest verification, not a completed full public re-download.
+
+**Remaining / next**
+
+- Physical-phone multi-picker behavior and daily shop use remain untested. Android and localhost web catalogs/backups remain independent.
+
 ## 2026-11-08 · DONE · Added product shelf and AI multi-image albums
 
 `WORK-012` — Android and localhost web support up to six product photos and six separate shelf photos per item, plus up to six selected AI input images in one reviewed request.

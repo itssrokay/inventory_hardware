@@ -2,7 +2,7 @@
 
 # Dukaan — hardware shop catalog
 
-Published Android test release: **0.5.0**. The first link above downloads this build.
+Published Android test release: **0.6.0**. The first link above downloads this build.
 
 Native Android app built from `plan.md`. It keeps the catalog on one phone and puts selling prices first. No server or account is required for local features.
 
@@ -149,16 +149,22 @@ Validation: **23 Kotlin unit tests, 18 Android emulator tests, 33 web tests and 
 
 ## Android release · 0.5.0
 
-The first README link downloads **v0.5.0**, including the category picker, faster reference search, price/discount viewing and related-product browsing. The release includes `Dukaan-debug.apk` and `Dukaan-debug.apk.sha256`. The signing certificate matches v0.4.0, so an existing installation can update in place.
+Version **0.5.0** introduced the category picker, faster reference search, price/discount viewing and related-product browsing. The release includes `Dukaan-debug.apk` and `Dukaan-debug.apk.sha256`. The signing certificate matches v0.4.0, so an existing installation can update in place.
 
 Release-candidate checks reran **23 Kotlin unit tests, 33 web tests and 9 journal-helper tests**, with zero lint errors (16 warnings). The 18 emulator feature tests above passed on the implementation before the version-only release bump and were not rerun for that metadata change. Bundled reference assets and picture hashes match source; source/APK credential scans passed. No API key is included. The web preview remains local and independent of Android.
 
-## Multiple product, shelf and AI images · source update after 0.5.0
+## Multiple product, shelf and AI images · 0.6.0
 
 Upload up to **six product photos** and **six shelf photos** per item. Select several files at once, review each crop, remove individual photos and choose the product cover. Canceling a crop ends the remaining batch; crops already accepted remain in the draft. Open either album in the product view to see larger images. Shelf pictures remain separate from the product cover and the written zone/location note.
 
 AI entry accepts **up to six selected images in one reviewed request**, at most 2 MB per cropped image and 8 MB combined. The Responses request includes all selected images in the content array, following the [official OpenAI image-input format](https://developers.openai.com/api/docs/guides/images-vision). The app does not guess selling prices from appearance or treat shelf counts as prices. AI input images are not automatically assigned to parsed products; the explicit reuse action copies them into the chosen product album. Category suggestions use product images, never the separate shelf album.
 
-Existing single covers migrate through Room schema 2 → 3; prices, aliases and reference links remain unchanged. Android ZIP and web JSON exports now use backup version 3 and retain both albums. Restore accepts old versions 1 and 2 as well. The independent web preview accepts backups up to 200 MB; API keys remain excluded. These source/local-build changes are newer than the published v0.5.0 APK.
+Existing single covers migrate through Room schema 2 → 3; prices, aliases and reference links remain unchanged. Android ZIP and web JSON exports now use backup version 3 and retain both albums. Restore accepts old versions 1 and 2 as well. The independent web preview accepts backups up to 200 MB; API keys remain excluded. These changes are included in the published v0.6.0 APK.
 
 Album verification passed **23 Kotlin unit tests, 22 Android emulator tests, 37 web tests and 9 journal-helper tests**. Lint reports zero errors (16 warnings). Emulator checks covered schema 2→3 migration, legacy version 2 photo restore, both-album backup round trips, explicit album clearing, cover selection and shelf-gallery viewing. Browser QA used an isolated synthetic AI server: two selected inputs reached one reviewed request, product/shelf albums saved separately, cover removal preserved the price and a version 3 restore recovered both albums. No live OpenAI call was made.
+
+## Android release · 0.6.0
+
+The README’s first link downloads **v0.6.0**, including product/shelf photo albums, multi-selection with individual cropping, cover/removal controls, enlarged galleries and multi-image AI review. `Dukaan-debug.apk.sha256` is available beside the APK in the release. Android version code is 6 and the signing certificate matches v0.5.0 for in-place updates.
+
+The release-candidate rebuild passed **23 Kotlin unit tests, 37 web tests and 9 journal-helper checks**, with zero lint errors (16 warnings). The 22 Android emulator feature tests passed before the version-only release bump and were not rerun for that metadata change. APK checks confirmed the album/migration code, shared assets and all 520 source-picture hashes; source/APK credential scans passed. No API key is included and no live OpenAI request was made.
