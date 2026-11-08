@@ -14,6 +14,7 @@ const files = new Map([
   ['/project/style.css', ['project/style.css', 'text/css; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
   ['/domain.js', ['domain.js', 'text/javascript; charset=utf-8']],
+  ['/photos.js', ['photos.js', 'text/javascript; charset=utf-8']],
   ['/crop.js', ['crop.js', 'text/javascript; charset=utf-8']],
   ['/reference.js', ['reference.js', 'text/javascript; charset=utf-8']],
   ['/categories.js', ['categories.js', 'text/javascript; charset=utf-8']],
@@ -40,7 +41,7 @@ async function body(request) {
   let length = 0;
   for await (const chunk of request) {
     length += chunk.length;
-    if (length > 3_000_000) throw new Error('Request is too large.');
+    if (length > 11_000_000) throw new Error('Request is too large.');
     chunks.push(chunk);
   }
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
@@ -122,12 +123,18 @@ export function createApp({ keyProvider = keyFromEnvironment, openAiFetch = fetc
       const key = await keyProvider();
       if (!key) return json(response, 503, { error: 'No local OpenAI key found. Manual entry and catalog search still work.' });
       const input = await body(request);
-      const image = input.image;
-      if (image != null && (typeof image !== 'string' || image.length > 2_700_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image))) return json(response, 400, { error: 'Choose a cropped JPEG, PNG or WebP image under 2 MB.' });
-      if (image && pathname === '/api/search') return json(response, 400, { error: 'Search expects text.' });
-      if (typeof input.text !== 'string' || (!input.text.trim() && !image) || input.text.length > (pathname === '/api/parse' ? 12000 : 2000)) {
-        return json(response, 400, { error: 'Enter a shorter item description or search query.' });
+      if(input.images!=null&&input.image!=null)return json(response,400,{error:'Use images or image, not both.'});
+      const images=input.images??(input.image!=null?[input.image]:[]);
+      if(!Array.isArray(images)||images.length>6)return json(response,400,{error:'Choose up to 6 AI images.'});
+      let imageBytes=0;
+      for(const image of images) {
+        if(typeof image!=='string'||image.length>2_700_000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(image))return json(response,400,{error:'Choose cropped JPEG, PNG or WebP images under 2 MB each.'});
+        const bytes=Buffer.from(image.slice(image.indexOf(',')+1),'base64').length;
+        if(bytes>2_000_000)return json(response,400,{error:'Each AI image must be under 2 MB.'});imageBytes+=bytes;
       }
+      if(imageBytes>8_000_000)return json(response,400,{error:'AI images exceed 8 MB. Remove an image or crop it smaller.'});
+      if(images.length&&pathname==='/api/search')return json(response,400,{error:'Search expects text.'});
+      if(typeof input.text!=='string'||(!input.text.trim()&&!images.length)||input.text.length>(pathname==='/api/parse'?12000:2000))return json(response,400,{error:'Enter a shorter item description or search query.'});
       const listing = pathname === '/api/parse';
       const categorizing = pathname === '/api/categorize';
       const schema = JSON.parse(await readFile(resolve(assets, categorizing ? 'category-schema.json' : listing ? 'listing-schema.json' : 'rewrite-schema.json'), 'utf8'));
@@ -138,7 +145,7 @@ export function createApp({ keyProvider = keyFromEnvironment, openAiFetch = fetc
         method: 'POST', signal: AbortSignal.timeout(45000),
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-4.1-mini', store: false,
-          instructions, input: image ? [{role:'user', content:[{type:'input_text', text:input.text.trim() || 'Read the products in this image; leave unclear or missing selling prices blank.'},{type:'input_image',image_url:image,detail:'high'}]}] : input.text, max_output_tokens: listing ? 6000 : 1000,
+          instructions, input: images.length ? [{role:'user', content:[{type:'input_text', text:input.text.trim() || 'Read these images together; leave unclear or missing selling prices blank.'},...images.map(image=>({type:'input_image',image_url:image,detail:'high'}))]}] : input.text, max_output_tokens: listing ? 6000 : 1000,
           text: { format: { type: 'json_schema', name: categorizing ? 'catalog_category' : listing ? 'catalog_listing' : 'catalog_query', strict: true, schema } } }),
       });
       if (!upstream.ok) {

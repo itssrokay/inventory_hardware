@@ -12,6 +12,7 @@ data class Product(
     val aliases: List<String> = emptyList(), val photoPath: String? = null,
     val zone: String = "", val locationNote: String = "", val updatedAt: Long = 0,
     val variants: List<ProductVariant> = emptyList(),
+    val extraPhotoPaths: List<String> = emptyList(), val shelfPhotoPaths: List<String> = emptyList(),
 )
 data class ProductVariant(val id: Long, val spec: String, val unit: String, val pricePaise: Long, val updatedAt: Long, val sourceReferenceId: String? = null)
 data class VariantDraft(val spec: String = "", val unit: String = "piece", val price: String = "", val discount: String = "", val sourceReferenceId: String? = null)
@@ -20,8 +21,10 @@ data class ItemDraft(
     val aliases: String = "", val zone: String = "", val locationNote: String = "",
     val photoPath: String? = null, val variants: List<VariantDraft> = listOf(VariantDraft()),
     val targetId: Long? = null,
+    val extraPhotoPaths: List<String> = emptyList(), val shelfPhotoPaths: List<String> = emptyList(),
 ) {
     fun error(): String? = when {
+        productPhotos().size > 6 || shelfPhotoPaths.size > 6 -> "Choose up to 6 photos per album."
         name.isBlank() -> "Enter an item name."
         variants.isEmpty() -> "Add at least one size and price."
         variants.any { it.unit !in units } -> "Choose a valid price unit."
@@ -31,7 +34,7 @@ data class ItemDraft(
     }
 }
 fun Product.draft() = ItemDraft(name, brand, category, aliases.joinToString(", "), zone, locationNote, photoPath,
-    variants.map { VariantDraft(it.spec, it.unit, decimalPrice(it.pricePaise), sourceReferenceId = it.sourceReferenceId) }, id)
+    variants.map { VariantDraft(it.spec, it.unit, decimalPrice(it.pricePaise), sourceReferenceId = it.sourceReferenceId) }, id, extraPhotoPaths, shelfPhotoPaths)
 fun paise(price: String): Long? = try {
     val decimal = BigDecimal(price.trim())
     if (decimal < BigDecimal.ZERO || decimal > BigDecimal("100000000")) null
@@ -130,3 +133,7 @@ object CatalogSearch {
             (normalize(it.name) == normalize(draft.name) || it.aliases.any { alias -> normalize(alias) == normalize(draft.name) })
     }
 }
+
+fun Product.productPhotos(): List<String> = (listOfNotNull(photoPath) + extraPhotoPaths).distinct()
+fun ItemDraft.productPhotos(): List<String> = (listOfNotNull(photoPath) + extraPhotoPaths).distinct()
+fun ItemDraft.withProductPhotos(paths: List<String>): ItemDraft = paths.distinct().let { copy(photoPath=it.firstOrNull(),extraPhotoPaths=it.drop(1)) }

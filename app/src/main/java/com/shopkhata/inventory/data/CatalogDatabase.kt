@@ -12,6 +12,8 @@ data class ItemEntity(
     val name: String, val brand: String = "", val category: String = "",
     val photoPath: String? = null, val zone: String = "", val locationNote: String = "",
     val createdAt: Long, val updatedAt: Long,
+    @ColumnInfo(defaultValue = "'[]'") val extraPhotoPathsJson: String = "[]",
+    @ColumnInfo(defaultValue = "'[]'") val shelfPhotoPathsJson: String = "[]",
 )
 @Entity(tableName = "variant", foreignKeys = [ForeignKey(entity = ItemEntity::class, parentColumns = ["id"], childColumns = ["itemId"], onDelete = ForeignKey.CASCADE)], indices = [Index("itemId"), Index(value = ["sourceReferenceId"], unique = true)])
 data class VariantEntity(@PrimaryKey(autoGenerate = true) val id: Long = 0, val itemId: Long, val spec: String, val unit: String, val pricePaise: Long, val priceUpdatedAt: Long, val sourceReferenceId: String? = null)
@@ -54,7 +56,7 @@ interface CatalogDao {
     @Query("SELECT * FROM variant WHERE sourceReferenceId = :referenceId LIMIT 1") suspend fun referenceVariant(referenceId: String): VariantEntity?
     @Query("SELECT * FROM search_miss") suspend fun allMisses(): List<SearchMissEntity>
 }
-@Database(entities = [ItemEntity::class, VariantEntity::class, AliasEntity::class, PriceHistoryEntity::class, SearchMissEntity::class, ItemFts::class], version = 2, exportSchema = true)
+@Database(entities = [ItemEntity::class, VariantEntity::class, AliasEntity::class, PriceHistoryEntity::class, SearchMissEntity::class, ItemFts::class], version = 3, exportSchema = true)
 abstract class CatalogDatabase : RoomDatabase() {
     abstract fun catalog(): CatalogDao
     companion object {
@@ -64,6 +66,12 @@ abstract class CatalogDatabase : RoomDatabase() {
                 db.execSQL("CREATE UNIQUE INDEX index_variant_sourceReferenceId ON variant(sourceReferenceId)")
             }
         }
-        fun open(context: Context) = Room.databaseBuilder(context, CatalogDatabase::class.java, "catalog.db").addMigrations(MIGRATION_1_2).build()
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE item ADD COLUMN extraPhotoPathsJson TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE item ADD COLUMN shelfPhotoPathsJson TEXT NOT NULL DEFAULT '[]'")
+            }
+        }
+        fun open(context: Context) = Room.databaseBuilder(context, CatalogDatabase::class.java, "catalog.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
     }
 }

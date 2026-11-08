@@ -312,10 +312,18 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
     val products by vm.products.collectAsStateWithLifecycle()
     val configured by vm.keyConfigured.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val listingImage by vm.listingImage.collectAsStateWithLifecycle()
+    val listingImages by vm.listingImages.collectAsStateWithLifecycle()
     var photoIndex by remember { mutableStateOf<Int?>(null) }
     var cropUri by remember { mutableStateOf<Uri?>(null) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> cropUri = uri }
+    var photoShelf by remember { mutableStateOf(false) }
+    var replacePhoto by remember { mutableStateOf<Int?>(null) }
+    var cropQueue by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    fun nextCrop() {cropUri=cropQueue.firstOrNull();cropQueue=cropQueue.drop(1);replacePhoto=null}
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris ->
+        val size=photoIndex?.let {review.getOrNull(it)?.let {d->if(photoShelf)d.shelfPhotoPaths.size else d.productPhotos().size}} ?: listingImages.size
+        if(uris.size>6-size)vm.message("Choose up to 6 photos per album.")
+        else {cropUri=uris.firstOrNull();cropQueue=uris.drop(1);replacePhoto=null}
+    }
     LazyColumn(Modifier.fillMaxSize().testTag("add-list"), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { Header("Less typing, more selling", if (review.isEmpty()) "Stock your catalog" else "Check before saving", if (review.isEmpty()) "Speak or type the way you do at the counter." else "Confirm names, sizes and every selling price.") }
         if (review.isEmpty()) {
@@ -323,21 +331,11 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { Icon(Icons.Outlined.AutoAwesome, null, tint = Green, modifier = Modifier.size(20.dp)); Text(ui("Tell us what's on the shelf"), fontWeight = FontWeight.SemiBold) }
                 OutlinedTextField(listing, { vm.listing.value = it }, modifier = Modifier.fillMaxWidth().testTag("listing-input"), enabled = !busy,
                     placeholder = { Text(ui("Godrej tala 50mm 450, 65mm 600. Wood screw 1 inch 90 per packet.")) }, minLines = 5, maxLines = 10, shape = RoundedCornerShape(12.dp))
-                OutlinedButton(onClick = { photoIndex = null; picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !busy) {
-                    Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(ui(if (listingImage == null) "Add image to read items" else "Change input image"))
-                }
-                listingImage?.let { path ->
-                    AsyncImage(File(context.filesDir, path), "Image to read items from", Modifier.fillMaxWidth().height(160.dp), contentScale = ContentScale.Fit)
-                    Row {
-                        TextButton(onClick = { photoIndex = null; cropUri = Uri.fromFile(File(context.filesDir, path)) }, enabled = !busy) { Text(ui("Crop input image")) }
-                        TextButton(onClick = { vm.listingImage.value = null }, enabled = !busy) { Text(ui("Remove image")) }
-                    }
-                    Text(ui("Review sends this crop to OpenAI. Missing prices stay blank. A single-item image is also used as its photo."), fontSize = 11.sp, color = Muted)
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = voice, enabled = !busy) { Icon(Icons.Outlined.MicNone, null, Modifier.size(18.dp)); Text(ui("Speak")) }
-                    Button(onClick = vm::parse, enabled = !busy && (listing.isNotBlank() || listingImage != null) && configured, modifier = Modifier.weight(1f)) { Text(ui(if (busy) "Understanding…" else "Review items")) }
-                }
+                PhotoAlbumEditor("AI input images",listingImages,busy,
+                    {photoIndex=null;photoShelf=false;picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},
+                    {i->photoIndex=null;replacePhoto=i;cropUri=Uri.fromFile(File(context.filesDir,listingImages[i]))},
+                    {i->vm.listingImages.value=listingImages.filterIndexed {index,_->index!=i}})
+                Text(ui("Only these selected images are sent when you request AI review."),style=MaterialTheme.typography.bodySmall)
                 Text(ui("Text or image · AI suggests categories · Always reviewed before saving"), color = Muted, fontSize = 11.sp)
                 if (!configured) TextButton(onClick = { vm.tab.value = 2 }) { Text(ui("Set up OpenAI to use natural entry")) }
             } }
@@ -354,8 +352,9 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
             items(review.size) { index ->
                 val draft = review[index]
                 ItemEditor(draft, index, busy, CatalogSearch.duplicate(draft, products), { vm.updateDraft(index, it) },
-                    { vm.removeDraft(index) }, { photoIndex = index; picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                    { draft.photoPath?.let { photoIndex = index; cropUri = Uri.fromFile(File(context.filesDir, it)) } }, { vm.categorize(index) }, configured, vm)
+                    { vm.removeDraft(index) }, { shelf->photoIndex=index;photoShelf=shelf;replacePhoto=null;picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    { shelf,i ->photoIndex=index;photoShelf=shelf;replacePhoto=i;val path=if(shelf)draft.shelfPhotoPaths[i]else draft.productPhotos()[i];cropUri=Uri.fromFile(File(context.filesDir,path)) },
+                    { vm.categorize(index) }, configured, vm)
             }
             item {
                 val error = review.firstNotNullOfOrNull { it.error() }
@@ -367,13 +366,14 @@ private fun AddScreen(vm: InventoryViewModel, voice: () -> Unit) {
             }
         }
     }
-    cropUri?.let { uri -> ImageCropDialog(uri, { cropUri = null }) { bitmap -> cropUri = null; vm.croppedPhoto(photoIndex, bitmap) } }
+    cropUri?.let { uri -> ImageCropDialog(uri, { cropUri=null;cropQueue=emptyList();replacePhoto=null }) { bitmap -> vm.croppedPhoto(photoIndex, bitmap, photoShelf, replacePhoto) { nextCrop() } } }
 }
 
 @Composable
-private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: Product?, change: (ItemDraft) -> Unit, remove: () -> Unit, photo: () -> Unit, recrop: () -> Unit, categorize: () -> Unit, aiConfigured: Boolean, vm: InventoryViewModel) {
+private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: Product?, change: (ItemDraft) -> Unit, remove: () -> Unit, photo: (Boolean) -> Unit, recrop: (Boolean, Int) -> Unit, categorize: () -> Unit, aiConfigured: Boolean, vm: InventoryViewModel) {
     val context = LocalContext.current
     val catalogProducts by vm.products.collectAsStateWithLifecycle()
+    val aiImages by vm.listingImages.collectAsStateWithLifecycle()
     var more by rememberSaveable(index) { mutableStateOf(false) }
     Panel(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -398,7 +398,7 @@ private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: P
             TextButton(onClick = { change(draft.copy(targetId = null)) }, enabled = !busy) { Text(ui("Save as a separate item instead")) }
         } else if (duplicate != null) {
             Text(ui("${duplicate.name}${if (duplicate.brand.isNotBlank()) " · ${duplicate.brand}" else ""} already exists."), color = Color(0xFF9A652D), fontSize = 12.sp)
-            TextButton(onClick = { change(draft.copy(targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
+            TextButton(onClick = { change(draft.copy(targetId = duplicate.id, extraPhotoPaths=duplicate.extraPhotoPaths, shelfPhotoPaths=duplicate.shelfPhotoPaths, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
                 aliases = (duplicate.aliases + draft.aliases.split(',')).distinct().joinToString(", "))) }, enabled = !busy) { Text(ui("Update that item instead")) }
         }
         Text(ui("SIZES & SELLING PRICES"), fontSize = 10.sp, letterSpacing = 1.sp, color = Muted, fontWeight = FontWeight.Bold)
@@ -425,13 +425,14 @@ private fun ItemEditor(draft: ItemDraft, index: Int, busy: Boolean, duplicate: P
         TextButton(onClick = { change(draft.copy(variants = draft.variants + VariantDraft())) }, enabled = !busy) { Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Text(ui("Add another size")) }
         OutlinedTextField(draft.aliases, { change(draft.copy(aliases = it)) }, Modifier.fillMaxWidth(), enabled = !busy,
             label = { Text(ui("Other names, separated by commas")) }, placeholder = { Text(ui("tala, ताला, lock")) }, minLines = 1, maxLines = 3)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            draft.photoPath?.let { AsyncImage(File(context.filesDir, it), "Product photo", Modifier.size(64.dp).clip(RoundedCornerShape(10.dp)), contentScale = ContentScale.Crop) }
-            Column {
-                OutlinedButton(onClick = photo, enabled = !busy) { Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(ui(if (draft.photoPath == null) "Add photo" else "Change photo")) }
-                if (draft.photoPath != null) TextButton(onClick = recrop, enabled = !busy) { Text(ui("Crop photo")) }
-            }
-        }
+        if(aiImages.isNotEmpty()) TextButton(onClick={change(draft.withProductPhotos(draft.productPhotos()+aiImages))},
+            enabled=!busy&&(draft.productPhotos()+aiImages).distinct().size<=6) {Text(ui("Use AI images as product photos"))}
+        PhotoAlbumEditor("Product photos",draft.productPhotos(),busy,{photo(false)},{recrop(false,it)},
+            {i->change(draft.withProductPhotos(draft.productPhotos().filterIndexed {index,_->index!=i}))},
+            {i->val album=draft.productPhotos();change(draft.withProductPhotos(listOf(album[i])+album.filterIndexed {index,_->index!=i}))})
+        PhotoAlbumEditor("Shelf photos",draft.shelfPhotoPaths,busy,{photo(true)},{recrop(true,it)},
+            {i->change(draft.copy(shelfPhotoPaths=draft.shelfPhotoPaths.filterIndexed {index,_->index!=i}))})
+        Text(ui("Shelf photos stay local and are not sent with category suggestions."),style=MaterialTheme.typography.labelSmall)
         TextButton(onClick = { more = !more }) { Text(ui(if (more) "Hide shelf location" else "Add shelf location (optional)")) }
         if (more || draft.zone.isNotBlank() || draft.locationNote.isNotBlank()) {
             OutlinedTextField(draft.zone, { change(draft.copy(zone = it)) }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(ui("Zone")) }, singleLine = true)

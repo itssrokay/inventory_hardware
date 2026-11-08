@@ -2,6 +2,30 @@
 
 Generated from `events.jsonl` by `scripts/project_log.py`. Append outcomes with the helper; keep past entries intact. Dates use Asia/Kolkata.
 
+## 2026-11-08 · DONE · Added product shelf and AI multi-image albums
+
+`WORK-012` — Android and localhost web support up to six product photos and six separate shelf photos per item, plus up to six selected AI input images in one reviewed request.
+
+**Changed**
+
+- Added multi-selection with sequential cropping, per-image removal/recrop, explicit cover selection, enlarged product/shelf galleries and an explicit action to reuse selected AI images as product photos. Canceling a crop ends the remaining batch without discarding already accepted crops.
+- Added Room schema 3 migrations and version 3 Android/web backups preserving both albums and old covers. Restore accepts legacy formats 1 and 2. Category suggestions send product photos only; shelf photos stay local. AI input batches enforce six images, 2 MB each and 8 MB combined. ADR-010 records these boundaries.
+
+**Verification**
+
+- Passed 23 Kotlin unit tests, 22 Android emulator tests, 37 web tests and 9 journal checks. Android build succeeds; lint has zero errors and 16 warnings. Emulator coverage includes schema 2→3 with prices/source links intact, both-album backup round trips, legacy version 2 single-photo restore, clearing albums and a real touch flow for cover selection/save/shelf gallery.
+- Isolated localhost:5176 browser QA selected and cropped two inputs, confirmed an AI request containing two input_image parts with store=false, reviewed before save, saved two product photos plus one shelf photo, changed/removed cover, enlarged a shelf picture, then restored a version 3 JSON backup with 2+1 photos, unchanged 1700 paise price and empty price history. Hindi controls were inspected. Test photos and stub payload metadata stayed outside source. No live OpenAI call or real catalog write was used for browser fixtures.
+
+**Remaining / next**
+
+- Source/local builds include these changes; the public APK remains v0.5.0. Physical-phone multi-picker behavior still needs a trial. Android and browser catalogs/backups remain independent.
+
+## 2026-11-08 · DECISION · Keep product albums shelf photos and AI input batches separate
+
+`ADR-010` — Each item has a product album with an explicit cover and a separate shelf album. AI inputs are temporary, selected explicitly and copied into an item only on request.
+
+[ADR-010: Keep product albums shelf photos and AI input batches separate](decisions/ADR-010.md) · Accepted
+
 ## 2026-11-07 · DONE · Published Dukaan v0.5.0 and verified the APK download
 
 `WORK-011` — The latest public GitHub APK now includes searchable categories, faster reference search, read-only product/discount views and related-product browsing. The README first link downloads v0.5.0.

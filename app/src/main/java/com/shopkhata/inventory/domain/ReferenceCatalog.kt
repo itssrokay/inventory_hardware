@@ -33,6 +33,6 @@ fun referenceDrafts(catalog: ReferenceCatalog, selected: Set<String>, shop: List
     }.groupBy { it.name to it.category }.values.map { drafts ->
         val draft = drafts.first().copy(variants = drafts.flatMap { it.variants }.distinctBy { it.sourceReferenceId })
         val existing = shop.firstOrNull { normalize(it.name) == normalize(draft.name) && normalize(it.brand) == "prince" }
-        draft.copy(targetId = existing?.id, photoPath = existing?.photoPath, zone = existing?.zone.orEmpty(), locationNote = existing?.locationNote.orEmpty(), aliases = existing?.aliases?.joinToString(", ").orEmpty())
+        draft.copy(extraPhotoPaths=existing?.extraPhotoPaths.orEmpty(), shelfPhotoPaths=existing?.shelfPhotoPaths.orEmpty(), targetId = existing?.id, photoPath = existing?.photoPath, zone = existing?.zone.orEmpty(), locationNote = existing?.locationNote.orEmpty(), aliases = existing?.aliases?.joinToString(", ").orEmpty())
     }
 }

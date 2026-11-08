@@ -21,7 +21,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
     suspend fun export(): File = withContext(Dispatchers.IO) {
         val dao = db.catalog()
         val (rows, histories, misses) = db.withTransaction { Triple(dao.all(), dao.allHistory(), dao.allMisses()) }
-        val root = JSONObject().put("version", 2).put("exported_at", System.currentTimeMillis())
+        val root = JSONObject().put("version", 3).put("exported_at", System.currentTimeMillis())
             .put("tax_label", context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("tax_label", "GST not specified"))
             .put("ui_language",context.getSharedPreferences("settings",Context.MODE_PRIVATE).getString("ui_language","en"))
             .put("items", JSONArray(rows.map { row ->
@@ -29,6 +29,8 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                 JSONObject().put("id", item.id).put("name", item.name).put("brand", item.brand).put("category", item.category)
                     .put("zone", item.zone).put("location_note", item.locationNote).put("created_at", item.createdAt).put("updated_at", item.updatedAt)
                     .put("photo", if (item.photoPath != null) "photos/${item.id}.jpg" else JSONObject.NULL)
+                    .put("extra_photos", JSONArray(jsonPaths(item.extraPhotoPathsJson).indices.map { "photos/${item.id}-p-$it.jpg" }))
+                    .put("shelf_photos", JSONArray(jsonPaths(item.shelfPhotoPathsJson).indices.map { "photos/${item.id}-s-$it.jpg" }))
                     .put("aliases", JSONArray(row.aliases.map { it.text }))
                     .put("variants", JSONArray(row.variants.map {
                         JSONObject().put("id", it.id).put("spec", it.spec).put("unit", it.unit).put("price_paise", it.pricePaise).put("updated_at", it.priceUpdatedAt).put("source_reference_id", it.sourceReferenceId ?: JSONObject.NULL)
@@ -44,11 +46,17 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
         try {
             ZipOutputStream(file.outputStream().buffered()).use { zip ->
                 zip.putNextEntry(ZipEntry("catalog.json")); zip.write(root.toString(2).toByteArray()); zip.closeEntry()
-                rows.forEach { row -> row.item.photoPath?.let { path ->
-                    val photo = File(context.filesDir, path)
-                    check(photo.isFile) { "A product photo is missing. Update that photo before backing up." }
-                    zip.putNextEntry(ZipEntry("photos/${row.item.id}.jpg")); photo.inputStream().use { it.copyTo(zip) }; zip.closeEntry()
-                } }
+                rows.forEach { row ->
+                    val item=row.item
+                    val pictures=listOfNotNull(item.photoPath?.let { "photos/${item.id}.jpg" to it }) +
+                        jsonPaths(item.extraPhotoPathsJson).mapIndexed { i,path -> "photos/${item.id}-p-$i.jpg" to path } +
+                        jsonPaths(item.shelfPhotoPathsJson).mapIndexed { i,path -> "photos/${item.id}-s-$i.jpg" to path }
+                    pictures.forEach { (entry,path) ->
+                        val photo=File(context.filesDir,path)
+                        check(photo.isFile && photo.length()<=2_000_000) { "A photo is missing or too large. Update it before backing up." }
+                        zip.putNextEntry(ZipEntry(entry));photo.inputStream().use { it.copyTo(zip) };zip.closeEntry()
+                    }
+                }
             }
             file
         } catch (error: Exception) { file.delete(); throw error }
@@ -64,8 +72,8 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
             ZipInputStream(requireNotNull(context.contentResolver.openInputStream(uri))).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
-                    require(seen.add(entry.name) && seen.size <= 2001) { "Duplicate or excessive backup entries." }
-                    require(entry.name == "catalog.json" || Regex("photos/[1-9][0-9]*\\.jpg").matches(entry.name)) { "Invalid backup file." }
+                    require(seen.add(entry.name) && seen.size <= 24001) { "Duplicate or excessive backup entries." }
+                    require(entry.name == "catalog.json" || Regex("photos/[1-9][0-9]*(?:-[ps]-[0-5])?\\.jpg").matches(entry.name)) { "Invalid backup file." }
                     val limit = if (entry.name == "catalog.json") 10_000_000 else 2_000_000
                     val out = java.io.ByteArrayOutputStream()
                     val buffer = ByteArray(8192)
@@ -82,7 +90,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                 }
             }
             val json = JSONObject(requireNotNull(manifest) { "catalog.json is missing." })
-            require(json.getInt("version") in 1..2) { "Unsupported backup version." }
+            require(json.getInt("version") in 1..3) { "Unsupported backup version." }
             val itemIds = mutableSetOf<Long>()
             val variantIds = mutableSetOf<Long>()
             val referenceIds = mutableSetOf<String>()
@@ -93,14 +101,26 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                     require(it == "photos/$id.jpg" && File(directory, "$id.jpg").isFile) { "Missing product photo." }
                     "${directory.relativeTo(context.filesDir).path}/$id.jpg"
                 }
+                fun album(field: String, kind: String, max: Int): List<String> {
+                    require(!item.has(field) || item.isNull(field) || item.optJSONArray(field)!=null) { "Invalid photo album." }
+                    val entries=item.optJSONArray(field) ?: return emptyList()
+                    require(entries.length()<=max) { "Too many photos in backup." }
+                    return (0 until entries.length()).map { i ->
+                        val entry=entries.getString(i)
+                        require(entry=="photos/$id-$kind-$i.jpg" && File(directory,entry.substringAfter('/')).isFile) { "Missing album photo." }
+                        "${directory.relativeTo(context.filesDir).path}/${entry.substringAfter('/')}"
+                    }
+                }
+                val extras=album("extra_photos","p",5);val shelf=album("shelf_photos","s",6)
+                require(photo!=null || extras.isEmpty()) { "Product album has no cover." }
                 val entity = ItemEntity(id, item.getString("name"), item.getString("brand"), item.getString("category"), photo, item.getString("zone"),
-                    item.getString("location_note"), item.getLong("created_at"), item.getLong("updated_at"))
+                    item.getString("location_note"), item.getLong("created_at"), item.getLong("updated_at"), JSONArray(extras).toString(), JSONArray(shelf).toString())
                 val variants = item.getJSONArray("variants").objects().map { value ->
                     val variantId = value.exactLong("id")
                     val price = value.exactLong("price_paise")
                     require(variantId > 0 && variantIds.add(variantId) && price in 0..10_000_000_000L && value.getString("unit") in units) { "Invalid price or unit in backup." }
                     val referenceId = if (!value.has("source_reference_id") || value.isNull("source_reference_id")) null else value.getString("source_reference_id").also {
-                        require(it.length in 1..250 && referenceIds.add(it)) { "Invalid or duplicate reference link." }
+                        require(it.length in 1..350 && referenceIds.add(it)) { "Invalid or duplicate reference link." }
                     }
                     VariantEntity(variantId, id, value.getString("spec"), value.getString("unit"), price, value.getLong("updated_at"), referenceId)
                 }
@@ -118,7 +138,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
                 SearchMissEntity(query = it.getString("query"), searchedAt = it.getLong("searched_at"), resolvedItemId = resolved)
             }
             val dao = db.catalog()
-            val oldPhotos = dao.all().mapNotNull { it.item.photoPath }.toSet()
+            val oldPhotos = dao.all().flatMap { listOfNotNull(it.item.photoPath) + jsonPaths(it.item.extraPhotoPathsJson) + jsonPaths(it.item.shelfPhotoPathsJson) }.toSet()
             db.withTransaction {
                 dao.clearIndex(); dao.clearItems(); dao.clearMisses()
                 rows.forEach { row ->
@@ -132,7 +152,7 @@ class BackupManager(private val context: Context, private val db: CatalogDatabas
             }
             committed = true
             // Reclaim only old catalog-owned photos, after the replacement has committed.
-            val retainedPhotos = rows.mapNotNull { it.item.photoPath }.toSet()
+            val retainedPhotos = rows.flatMap { listOfNotNull(it.item.photoPath) + jsonPaths(it.item.extraPhotoPathsJson) + jsonPaths(it.item.shelfPhotoPathsJson) }.toSet()
             (oldPhotos - retainedPhotos).forEach { path ->
                 runCatching {
                     val oldPhoto = File(context.filesDir, path)

@@ -95,3 +95,25 @@ test('reference routes expose only the fixed library assets and never call AI or
   assert.equal((await fetch(base+'/reference/catalog.json',{method:'POST'})).status,404);
  });
 });
+
+test('multi-image listing and category requests carry every selected image in one reviewed response', async()=>{
+  const images=['data:image/jpeg;base64,YQ==','data:image/png;base64,Yg=='];let payload;
+  await withServer({keyProvider:async()=>'sk-synthetic-key-only',openAiFetch:async(url,request)=>{
+    payload=JSON.parse(request.body);return Response.json({status:'completed',output:[{content:[{type:'output_text',text:'{"items":[],"warnings":["Confirm prices"]}'}]}]});
+  }},async base=>{
+    const response=await fetch(base+'/api/parse',{...post(''),body:JSON.stringify({text:'',images})});assert.equal(response.status,200);
+    assert.deepEqual(payload.input[0].content.filter(p=>p.type==='input_image').map(p=>p.image_url),images);assert.equal(payload.store,false);
+    const category=await fetch(base+'/api/categorize',{...post(''),body:JSON.stringify({text:'Socket',images})});assert.equal(category.status,200);
+    assert.equal(payload.input[0].content.filter(p=>p.type==='input_image').length,2);
+  });
+});
+test('multi-image validation rejects invalid batches and total payload before calling OpenAI',async()=>{
+  await withServer({keyProvider:async()=>'sk-synthetic-key-only',openAiFetch:async()=>assert.fail('Invalid images must not reach OpenAI')},async base=>{
+    const small='data:image/jpeg;base64,YQ==';
+    for(const input of [{images:Array(7).fill(small)},{images:'bad'},{images:[null]},{images:['https://example.com/x.png']},{image:small,images:[small]},{images:[]}]) {
+      assert.equal((await fetch(base+'/api/parse',{...post(''),body:JSON.stringify({text:'',...input})})).status,400);
+    }
+    const big='data:image/jpeg;base64,'+Buffer.alloc(1_700_000).toString('base64');
+    assert.equal((await fetch(base+'/api/parse',{...post(''),body:JSON.stringify({text:'',images:Array(5).fill(big)})})).status,400);
+  });
+});

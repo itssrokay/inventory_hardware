@@ -46,7 +46,7 @@ export function referenceDrafts(catalog, selected, products) {
     let draft=drafts.get(key);
     if(!draft) {
       const existing=products.find(p=>normalize(p.name)===normalize(name)&&normalize(p.brand)==='prince');
-      draft={name,brand:'Prince',category:p.category,aliases:existing?.aliases.join(', ')||'',zone:existing?.zone||'',locationNote:existing?.locationNote||'',photo:existing?.photo||null,referenceImageAsset:p.imageAsset||null,targetId:existing?.id||null,variants:[]};drafts.set(key,draft);
+      draft={name,brand:'Prince',category:p.category,aliases:existing?.aliases.join(', ')||'',zone:existing?.zone||'',locationNote:existing?.locationNote||'',photo:existing?.photo||null,extraPhotos:existing?.extraPhotos||[],shelfPhotos:existing?.shelfPhotos||[],referenceImageAsset:p.imageAsset||null,targetId:existing?.id||null,variants:[]};drafts.set(key,draft);
     }
     draft.variants.push(...variants.map(v=>({spec:referenceSpec(v),unit:'',price:'',discount:'',sourceReferenceId:v.id})));
   }

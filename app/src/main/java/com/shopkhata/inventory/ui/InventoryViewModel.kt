@@ -32,7 +32,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     val query = MutableStateFlow("")
     val searchCategory = MutableStateFlow<String?>(null)
     val listing = MutableStateFlow("")
-    val listingImage = MutableStateFlow<String?>(null)
+    val listingImages = MutableStateFlow<List<String>>(emptyList())
     val review = MutableStateFlow<List<ItemDraft>>(emptyList())
     val warnings = MutableStateFlow<List<String>>(emptyList())
     val busy = MutableStateFlow(false)
@@ -111,11 +111,11 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
     fun removeDraft(index: Int) { review.value = review.value.filterIndexed { i, _ -> i != index } }
     fun cancelReview() { if (!busy.value) { review.value = emptyList(); warnings.value = emptyList(); fullEdit = false } }
     fun parse() = operation {
-        val parsed = ai.parse(listing.value, listingImage.value, products.value.map { it.category }.distinct())
+        val parsed = ai.parse(listing.value, categories=products.value.map { it.category }.distinct(), images=listingImages.value)
         fullEdit = false
         review.value = parsed.items.map { draft ->
             val duplicate = CatalogSearch.duplicate(draft, products.value)
-            if (duplicate == null) draft.copy(photoPath = if (parsed.items.size == 1) listingImage.value else null) else draft.copy(targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
+            if (duplicate == null) draft else draft.copy(extraPhotoPaths=duplicate.extraPhotoPaths, shelfPhotoPaths=duplicate.shelfPhotoPaths, targetId = duplicate.id, photoPath = duplicate.photoPath, zone = duplicate.zone, locationNote = duplicate.locationNote,
                 aliases = (duplicate.aliases + draft.aliases.split(',').map { it.trim() }).distinct().joinToString(", "))
         }
         warnings.value = parsed.warnings
@@ -127,7 +127,7 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         require(items.map { normalize(it.name) to normalize(it.brand) }.distinct().size == items.size) { "Combine duplicate items into one card before saving." }
         val result = repository.save(items, fullEdit)
         referenceSelected.value = emptySet()
-        review.value = emptyList(); warnings.value = emptyList(); listing.value = ""; listingImage.value = null; fullEdit = false
+        review.value = emptyList(); warnings.value = emptyList(); listing.value = ""; listingImages.value = emptyList(); fullEdit = false
         query.value = ""; searchCategory.value = null; rewrites.value = null; tab.value = 0
         message("${result.size} ${if (result.size == 1) "item" else "items"} saved on this phone.")
     }
@@ -135,14 +135,23 @@ class InventoryViewModel(application: Application) : AndroidViewModel(applicatio
         val path = photos.import(uri)
         if (index in review.value.indices) updateDraft(index, review.value[index].copy(photoPath = path))
     }
-    fun croppedPhoto(index: Int?, bitmap: Bitmap) = operation {
+    fun croppedPhoto(index: Int?, bitmap: Bitmap, shelf: Boolean = false, replace: Int? = null, done: () -> Unit = {}) = operation {
         val path = photos.save(bitmap)
-        if (index == null) listingImage.value = path
-        else if (index in review.value.indices) updateDraft(index, review.value[index].copy(photoPath = path))
+        if(index==null) {
+            val album=listingImages.value.toMutableList()
+            if(replace!=null && replace in album.indices)album[replace]=path else {require(album.size<6) { "Choose up to 6 AI images." };album.add(path)}
+            listingImages.value=album
+        } else if(index in review.value.indices) {
+            val draft=review.value[index]
+            val album=(if(shelf)draft.shelfPhotoPaths else draft.productPhotos()).toMutableList()
+            if(replace!=null && replace in album.indices)album[replace]=path else {require(album.size<6) { "Choose up to 6 photos per album." };album.add(path)}
+            updateDraft(index,if(shelf)draft.copy(shelfPhotoPaths=album)else draft.withProductPhotos(album))
+        }
+        done()
     }
     fun categorize(index: Int) = operation {
         val draft = review.value[index]
-        val suggestion = ai.categorize(draft.name, draft.brand, draft.photoPath, products.value.map { it.category }.distinct())
+        val suggestion = ai.categorize(draft.name, draft.brand, draft.photoPath, products.value.map { it.category }.distinct(), images=draft.productPhotos())
         val current = review.value.getOrNull(index) ?: return@operation
         updateDraft(index, current.copy(category = suggestion.category, aliases = (current.aliases.split(',').map { it.trim() } + suggestion.aliases).filter { it.isNotBlank() }.distinct().joinToString(", ")))
         message(suggestion.reason.ifBlank { "Category suggested. Review it before saving." })

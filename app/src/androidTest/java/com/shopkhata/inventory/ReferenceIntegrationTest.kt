@@ -49,7 +49,7 @@ class ReferenceIntegrationTest {
             version=1
             close()
         }
-        val db=Room.databaseBuilder(context,CatalogDatabase::class.java,name).addMigrations(CatalogDatabase.MIGRATION_1_2).build()
+        val db=Room.databaseBuilder(context,CatalogDatabase::class.java,name).addMigrations(CatalogDatabase.MIGRATION_1_2,CatalogDatabase.MIGRATION_2_3).build()
         try { val row=db.catalog().all().single();assertEquals("A2",row.item.zone);assertEquals(12345L,row.variants.single().pricePaise);assertNull(row.variants.single().sourceReferenceId) }
         finally { db.close();context.deleteDatabase(name) }
     }

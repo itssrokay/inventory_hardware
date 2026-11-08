@@ -54,7 +54,7 @@ A checkout without the original PDF still has the JSON library and source rows. 
 
 ## Persistence and verification
 
-Room schema 2 adds a nullable, unique reference ID to shop variants. The 1→2 migration preserves existing items and prices and seeds no reference stock. Android ZIP backup version 2 and web JSON backup version 2 retain these links; both restore their own version 1 format. Android/browser catalogs and backups remain independent.
+Room schema 2 adds a nullable, unique reference ID to shop variants. The 1→2 migration preserves existing items and prices and seeds no reference stock. Current Room schema 3 preserves these links while adding product/shelf albums. Android ZIP and web JSON backup version 3 retain links and both albums; each restores its own formats 1–3. Android/browser catalogs and backups remain independent.
 
 Focused checks cover source examples and anomalies, vertically merged rows, shared rates across pipe lengths/classes, exact-code searching, partial activation, repeated activation, source-price separation, backup links and migration from the actual exported version 1 schema. The shop counter still needs an owner-led selection and a real-phone trial.
 

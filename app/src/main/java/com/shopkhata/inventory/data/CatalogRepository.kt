@@ -3,9 +3,10 @@ package com.shopkhata.inventory.data
 import androidx.room.withTransaction
 import com.shopkhata.inventory.domain.*
 import kotlinx.coroutines.flow.map
+import org.json.JSONArray
 
 fun ItemWithRelations.product() = Product(item.id, item.name, item.brand, item.category, aliases.map { it.text }, item.photoPath, item.zone, item.locationNote, item.updatedAt,
-    variants.sortedBy { it.id }.map { ProductVariant(it.id, it.spec, it.unit, it.pricePaise, it.priceUpdatedAt, it.sourceReferenceId) })
+    variants.sortedBy { it.id }.map { ProductVariant(it.id, it.spec, it.unit, it.pricePaise, it.priceUpdatedAt, it.sourceReferenceId) }, jsonPaths(item.extraPhotoPathsJson), jsonPaths(item.shelfPhotoPathsJson))
 class CatalogRepository(val db: CatalogDatabase) {
     private val dao = db.catalog()
     val products = dao.observe().map { list -> list.map { it.product() } }
@@ -22,8 +23,12 @@ class CatalogRepository(val db: CatalogDatabase) {
         drafts.map { draft ->
             val now = System.currentTimeMillis()
             val existing = draft.targetId?.let { requireNotNull(dao.item(it)) { "The item no longer exists. Reopen the editor." } }
+            val oldProduct = existing?.product()
+            val album = if (replaceVariants || draft.productPhotos().isNotEmpty()) draft.productPhotos() else oldProduct?.productPhotos().orEmpty()
+            val shelf = if (replaceVariants || draft.shelfPhotoPaths.isNotEmpty()) draft.shelfPhotoPaths else oldProduct?.shelfPhotoPaths.orEmpty()
+            require(album.size <= 6 && shelf.size <= 6) { "Choose up to 6 photos per album." }
             val item = ItemEntity(existing?.item?.id ?: 0, draft.name.trim(), draft.brand.trim(), draft.category.trim(),
-                draft.photoPath ?: existing?.item?.photoPath, draft.zone.trim(), draft.locationNote.trim(), existing?.item?.createdAt ?: now, now)
+                album.firstOrNull(), draft.zone.trim(), draft.locationNote.trim(), existing?.item?.createdAt ?: now, now, JSONArray(album.drop(1)).toString(), JSONArray(shelf).toString())
             val id = if (existing == null) dao.insertItem(item) else item.id.also { dao.updateItem(item) }
             val keptIds = mutableSetOf<Long>()
             draft.variants.forEach { value ->
@@ -74,3 +79,5 @@ class CatalogRepository(val db: CatalogDatabase) {
             normalize(row.item.category), row.variants.joinToString(" ") { normalize(it.spec) }))
     }
 }
+
+fun jsonPaths(json: String): List<String> = JSONArray(json).let { a -> (0 until a.length()).map { a.getString(it) } }

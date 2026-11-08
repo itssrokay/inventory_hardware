@@ -50,7 +50,7 @@ The preview includes six clearly labeled sample items, Hindi/English typo-tolera
 npm --prefix web test
 ```
 
-Thirty-three tests cover search and strict natural brand filters, prices and discount rounding, crop geometry, duplicates, backup validation, vision/category proxy requests, credential isolation and the read-only project cockpit. Nine Python tests cover the journal helper and shared skill paths. Browser verification also covered Hindi size search, a price change surviving reload, live OpenAI parse → editable review → duplicate update while retaining existing sizes, and manual duplicate suggestions. Voice input depends on browser support and microphone permission.
+Thirty-seven tests cover search and strict natural brand filters, prices and discount rounding, crop geometry, duplicates, backup validation, vision/category proxy requests, credential isolation and the read-only project cockpit. Nine Python tests cover the journal helper and shared skill paths. Browser verification also covered Hindi size search, a price change surviving reload, live OpenAI parse → editable review → duplicate update while retaining existing sizes, and manual duplicate suggestions. Voice input depends on browser support and microphone permission.
 
 ## Build and run
 
@@ -80,7 +80,7 @@ python3 scripts/provision_debug_key.py --serial YOUR_ADB_SERIAL
 
 The script asks for confirmation before transferring the key. It passes the key over stdin, without putting it in command-line arguments. On startup, the debug app encrypts it and deletes the temporary import. This import path is disabled in release builds. No key is preconfigured in the downloadable APK.
 
-Default model: `gpt-4.1-mini`; change it in Settings if needed. Only submitted listing text/images, category-suggestion text/images, or search text plus category names are sent to OpenAI. Cropping is local; an image goes online only when Review items or Suggest category is requested. A single-item input image can become that item’s product photo; multi-item lists require individual product photos. Requests use `store: false`. API usage is billed to the configured OpenAI account.
+Default model: `gpt-4.1-mini`; change it in Settings if needed. Only submitted listing text/images, category-suggestion text/images, or search text plus category names are sent to OpenAI. Cropping is local; an image goes online only when Review items or Suggest category is requested. AI input images remain separate from saved product photos. Use the explicit “Use AI images as product photos” action during review when those images belong to that item. Category suggestions send only the item’s product photos; shelf photos are excluded. Requests use `store: false`. API usage is billed to the configured OpenAI account.
 
 Implementation follows the official [Structured Outputs documentation](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses). Schema and instructions are under `app/src/main/assets/` and shared with the host smoke check.
 
@@ -97,7 +97,7 @@ python3 scripts/smoke_openai.py
 
 Unit tests cover Hindi, Hinglish, aliases, typos, size filtering, price validation, duplicate detection and search across 1,000 items. Emulator tests cover Room/FTS, price history, atomic batch writes, alias learning, backup round trips, malicious archive rejection, Keystore encryption, and add → search → price edit → activity recreation.
 
-Backups use versioned `catalog.json` plus `photos/<item-id>.jpg`. Prices in the archive are integer paise. Restore validates entry names, sizes, schema, item relationships and prices before replacing the database in one transaction. Credentials are excluded and Android cloud backup is disabled.
+Android backups use version 3 `catalog.json` with cover, extra-product and shelf JPEG files under `photos/`; restore accepts versions 1, 2 and 3. Prices in the archive are integer paise. Restore validates entry names, sizes, schema, item relationships and prices before replacing the database in one transaction. Credentials are excluded and Android cloud backup is disabled.
 
 ## Validation on Nov 6, 2026
 
@@ -152,3 +152,13 @@ Validation: **23 Kotlin unit tests, 18 Android emulator tests, 33 web tests and 
 The first README link downloads **v0.5.0**, including the category picker, faster reference search, price/discount viewing and related-product browsing. The release includes `Dukaan-debug.apk` and `Dukaan-debug.apk.sha256`. The signing certificate matches v0.4.0, so an existing installation can update in place.
 
 Release-candidate checks reran **23 Kotlin unit tests, 33 web tests and 9 journal-helper tests**, with zero lint errors (16 warnings). The 18 emulator feature tests above passed on the implementation before the version-only release bump and were not rerun for that metadata change. Bundled reference assets and picture hashes match source; source/APK credential scans passed. No API key is included. The web preview remains local and independent of Android.
+
+## Multiple product, shelf and AI images · source update after 0.5.0
+
+Upload up to **six product photos** and **six shelf photos** per item. Select several files at once, review each crop, remove individual photos and choose the product cover. Canceling a crop ends the remaining batch; crops already accepted remain in the draft. Open either album in the product view to see larger images. Shelf pictures remain separate from the product cover and the written zone/location note.
+
+AI entry accepts **up to six selected images in one reviewed request**, at most 2 MB per cropped image and 8 MB combined. The Responses request includes all selected images in the content array, following the [official OpenAI image-input format](https://developers.openai.com/api/docs/guides/images-vision). The app does not guess selling prices from appearance or treat shelf counts as prices. AI input images are not automatically assigned to parsed products; the explicit reuse action copies them into the chosen product album. Category suggestions use product images, never the separate shelf album.
+
+Existing single covers migrate through Room schema 2 → 3; prices, aliases and reference links remain unchanged. Android ZIP and web JSON exports now use backup version 3 and retain both albums. Restore accepts old versions 1 and 2 as well. The independent web preview accepts backups up to 200 MB; API keys remain excluded. These source/local-build changes are newer than the published v0.5.0 APK.
+
+Album verification passed **23 Kotlin unit tests, 22 Android emulator tests, 37 web tests and 9 journal-helper tests**. Lint reports zero errors (16 warnings). Emulator checks covered schema 2→3 migration, legacy version 2 photo restore, both-album backup round trips, explicit album clearing, cover selection and shelf-gallery viewing. Browser QA used an isolated synthetic AI server: two selected inputs reached one reviewed request, product/shelf albums saved separately, cover removal preserved the price and a version 3 restore recovered both albums. No live OpenAI call was made.

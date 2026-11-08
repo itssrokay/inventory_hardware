@@ -487,12 +487,12 @@
       "hinglish": "Asli panna band karein"
     },
     "Previous": {
-      "hi": "पिछला",
-      "hinglish": "Pichhla"
+      "hi": "पिछली",
+      "hinglish": "Pichhli"
     },
     "Next": {
-      "hi": "अगला",
-      "hinglish": "Agla"
+      "hi": "अगली",
+      "hinglish": "Agli"
     },
     "Crop your image": {
       "hi": "फोटो का हिस्सा चुनें",
@@ -1601,6 +1601,58 @@
     "Tap a product to view prices and discounts": {
       "hi": "दाम और छूट देखने के लिए सामान पर टैप करें",
       "hinglish": "Daam aur chhoot dekhne ke liye samaan par tap karein"
+    },
+    "Product photos": {
+      "hi": "सामान की तस्वीरें",
+      "hinglish": "Samaan ki tasveerein"
+    },
+    "Shelf photos": {
+      "hi": "शेल्फ की तस्वीरें",
+      "hinglish": "Shelf ki tasveerein"
+    },
+    "AI input images": {
+      "hi": "AI के लिए तस्वीरें",
+      "hinglish": "AI ke liye tasveerein"
+    },
+    "Add photos": {
+      "hi": "तस्वीरें जोड़ें",
+      "hinglish": "Tasveerein jodein"
+    },
+    "Remove photo": {
+      "hi": "तस्वीर हटाएँ",
+      "hinglish": "Tasveer hatayein"
+    },
+    "Make cover": {
+      "hi": "मुख्य तस्वीर बनाएँ",
+      "hinglish": "Main tasveer banayein"
+    },
+    "Cover photo": {
+      "hi": "मुख्य तस्वीर",
+      "hinglish": "Main tasveer"
+    },
+    "Back to product": {
+      "hi": "सामान पर वापस जाएँ",
+      "hinglish": "Samaan par wapas jayein"
+    },
+    "Only these selected images are sent when you request AI review.": {
+      "hi": "AI जाँच माँगने पर केवल ये चुनी तस्वीरें भेजी जाती हैं।",
+      "hinglish": "AI review maangne par sirf ye chuni tasveerein bheji jaati hain."
+    },
+    "Shelf photos stay local and are not sent with category suggestions.": {
+      "hi": "शेल्फ की तस्वीरें यहीं रहेंगी; श्रेणी सुझाव के साथ नहीं भेजी जातीं।",
+      "hinglish": "Shelf photos yahin rahengi; category suggestion ke saath nahi bheji jaati."
+    },
+    "Choose up to 6 photos per album.": {
+      "hi": "हर एल्बम में अधिकतम 6 तस्वीरें चुनें।",
+      "hinglish": "Har album mein adhiktam 6 tasveerein chunein."
+    },
+    "Preparing photos…": {
+      "hi": "तस्वीरें तैयार हो रही हैं…",
+      "hinglish": "Tasveerein taiyaar ho rahi hain…"
+    },
+    "Use AI images as product photos": {
+      "hi": "AI वाली तस्वीरें सामान में जोड़ें",
+      "hinglish": "AI wali tasveerein samaan mein jodein"
     }
   },
   "terms": {

@@ -33,11 +33,11 @@ fun ProductDetailsDialog(product: Product, catalog: List<Product>, source: Refer
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
                 Text(ui("Preview only. Saved prices stay unchanged."), style = MaterialTheme.typography.labelSmall)
                 if (discountedPaise("1", discount) == null) Text(ui("Enter a discount from 0 to 100, with up to two decimal places."), color = MaterialTheme.colorScheme.error)
-                LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp).testTag("product-detail-list"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     item {
-                        if (product.photoPath != null || source?.imageAsset != null) AsyncImage(
-                            product.photoPath?.let { File(context.filesDir, it) } ?: "file:///android_asset/${source?.imageAsset}",
-                            "Photo of ${product.name}", Modifier.fillMaxWidth().height(100.dp))
+                        if(product.productPhotos().isNotEmpty())PhotoGallery("Product photos",product.productPhotos())
+                        else if(source?.imageAsset!=null)AsyncImage("file:///android_asset/${source.imageAsset}","Photo of ${product.name}",Modifier.fillMaxWidth().height(100.dp))
+                        PhotoGallery("Shelf photos",product.shelfPhotoPaths)
                         Text(tax)
                         val location = listOf(product.zone, product.locationNote).filter(String::isNotBlank).joinToString(" · ")
                         if (location.isNotBlank()) Text(location)

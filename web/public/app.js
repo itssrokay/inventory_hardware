@@ -1,3 +1,4 @@
+import {productPhotos,setProductPhotos,MAX_PHOTOS} from './photos.js';
 import {categoryChoices,matchingCategories,inCategory} from './categories.js';
 import { cropImage } from './crop.js';
 import {configureTranslations,setLanguageMode,languageMode,translate,localizeUi,searchQuery,productText} from './i18n.js';
@@ -76,7 +77,7 @@ function writeData(data) { return new Promise((resolve, reject) => {
   transaction.objectStore('state').put(data, 'catalog'); transaction.oncomplete = resolve;
   transaction.onerror = () => reject(new Error('Could not save in this browser. Export a backup or free some browser storage.'));
 }); }
-const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', query: '', category: null, resultLimit: 36, layout: 'grid', drafts: [], fullEdit: false, listing: '', listingImage: null, warnings: [], rewrites: null, busy: false,
+const state = { page: location.hash === '#reference' ? 'reference' : 'catalog', query: '', category: null, resultLimit: 36, layout: 'grid', drafts: [], fullEdit: false, listing: '', listingImages: [], photoBusy:false, warnings: [], rewrites: null, busy: false,
   data: null, config: { aiConfigured: false, model: '' } };
 const referenceState = {catalog:null,query:'',category:'',scope:'all',selected:new Set(),limit:20};
 let referenceSearchTimer;
@@ -159,12 +160,19 @@ function productCard({ product: p, variants }) {
     <div class="variant-list">${variants.map(v => `<button class="price-row" data-view-product="${esc(p.id)}" aria-label="View ${esc(p.name)} ${esc(v.spec)} price"><span class="variant-spec">${esc(v.spec || 'Standard')}<span>${esc(translate("per"))} ${esc(translate(v.unit))}</span><small class="price-date">${esc(translate(`Updated ${date(v.updatedAt)}${v.sourceReferenceId?' · Confirmed shop price · reference linked':''}`))}</small></span><strong>${currency(v.pricePaise)}</strong>${icon('arrow')}</button>`).join('')}</div>
     <div class="product-meta"><span>${p.zone ? `${icon('shop')}${esc(p.zone)}` : esc(state.data.settings.tax)}</span><span>${p.demo ? 'Sample · ' : ''}Price updated ${date(Math.max(...p.variants.map(v=>v.updatedAt)))}</span></div></article>`;
 }
-function emptyDraft() { return { name: '', brand: '', category: '', aliases: '', zone: '', locationNote: '', photo: null, targetId: null, variants: [{ spec: '', unit: 'piece', price: '', discount: '' }] }; }
+function photoEditor(index,shelf) {
+  const images=index===null?state.listingImages:shelf?(state.drafts[index].shelfPhotos||[]):productPhotos(state.drafts[index]);
+  const title=index===null?'AI input images':shelf?'Shelf photos':'Product photos';
+  return `<section class="photo-album"><h3>${translate(title)} (${images.length}/6)</h3><div class="photo-album-strip">${images.map((image,n)=>`<div class="photo-tile"><img src="${esc(image)}" alt="${esc(translate(title))} ${n+1}">${index!==null&&!shelf&&n===0?'<small>Cover photo</small>':''}<button type="button" class="text-button" data-album-action="crop" data-album-index="${index??'ai'}" data-album-shelf="${shelf}" data-photo-index="${n}" ${state.busy?'disabled':''}>Crop photo</button><button type="button" class="text-button" data-album-action="remove" data-album-index="${index??'ai'}" data-album-shelf="${shelf}" data-photo-index="${n}" ${state.busy?'disabled':''}>Remove photo</button>${index!==null&&!shelf&&n>0?`<button type="button" class="text-button" data-album-action="cover" data-album-index="${index}" data-album-shelf="false" data-photo-index="${n}" ${state.busy?'disabled':''}>Make cover</button>`:''}</div>`).join('')}</div><label class="button secondary photo-label">${icon('photo')}Add photos<input class="sr-only" type="file" accept="image/*" multiple data-album-upload="${index??'ai'}" data-album-shelf="${shelf}" ${state.busy||images.length>=6?'disabled':''}></label></section>`;
+}
+function albumFor(index,shelf) {return index===null?state.listingImages:shelf?(state.drafts[index].shelfPhotos||[]):productPhotos(state.drafts[index]);}
+function assignAlbum(index,shelf,images) {if(index===null)state.listingImages=images;else if(shelf)state.drafts[index].shelfPhotos=images;else setProductPhotos(state.drafts[index],images);}
+function emptyDraft() { return { name: '', brand: '', category: '', aliases: '', zone: '', locationNote: '', photo: null, extraPhotos:[], shelfPhotos:[], targetId: null, variants: [{ spec: '', unit: 'piece', price: '', discount: '' }] }; }
 function renderAdd() {
   $('#main').innerHTML = pageHeader('LESS TYPING. MORE SELLING.', state.drafts.length ? 'A quick check, then save.' : 'Tell us what’s on the shelf.', state.drafts.length ? 'You’re in control. Check each size, selling price and unit.' : 'Speak, type or add an image. AI suggests items and categories; you review every price.') +
     (state.drafts.length ? `<div class="review-top"><span class="pill">${icon('check')}${state.drafts.length} ${state.drafts.length === 1 ? 'item' : 'items'} to review</span><button class="text-button" data-action="discard">Discard review</button></div>${state.warnings.length ? `<div class="warning">${state.warnings.map(esc).join('<br>')}</div>` : ''}<form id="review-form"><div class="draft-grid">${state.drafts.map(draftCard).join('')}</div><div class="save-bar"><div>${icon('shield')}Nothing is saved until you confirm.</div><button class="button primary" type="submit">${icon('check')}Save ${state.drafts.length} ${state.drafts.length === 1 ? 'item' : 'items'}</button></div><p id="review-error" class="form-error" role="alert"></p></form>` :
     `<div class="entry-layout"><section class="panel entry-panel"><div class="section-heading"><span class="accent-icon">${icon('spark')}</span><div><h2>Say it your way</h2><p>Hindi, English or a little of both.</p></div><span class="pill quiet">OpenAI</span></div>
-      <label class="sr-only" for="listing">Items, sizes and prices</label><textarea id="listing" ${state.busy ? 'disabled' : ''} rows="6" maxlength="12000" placeholder="Godrej tala 50mm 450, 65mm 600.\nWood screw 1 inch 90 rupay per packet.">${esc(state.listing)}</textarea><div class="listing-image-controls"><label class="button secondary photo-label">${icon('photo')}${state.listingImage?'Change input image':'Add image to read items'}<input id="listing-image" class="sr-only" type="file" accept="image/*" ${state.busy?'disabled':''}></label>${state.listingImage?`<img class="listing-image-preview" src="${esc(state.listingImage)}" alt="Cropped image to read items from"><button class="text-button" data-action="recrop-listing" ${state.busy?'disabled':''}>Crop image</button><button class="text-button" data-action="remove-listing-image" ${state.busy?'disabled':''}>Remove image</button><p class="tiny">Review sends this crop to OpenAI. A single-item image is also kept as the product photo.</p>`:''}</div><div class="entry-actions"><button class="button secondary" data-action="voice-listing" ${state.busy ? 'disabled' : ''}>${icon('mic')}Speak items</button><button class="button primary" data-action="parse" ${state.busy || !state.config.aiConfigured ? 'disabled' : ''}>${icon('spark')}${state.busy ? 'Understanding…' : 'Review items'}${icon('arrow')}</button></div><p class="quiet-copy">${icon('shield')}Submitted text and images go to OpenAI. AI categories stay editable; missing prices stay blank.</p></section>
+      <label class="sr-only" for="listing">Items, sizes and prices</label><textarea id="listing" ${state.busy ? 'disabled' : ''} rows="6" maxlength="12000" placeholder="Godrej tala 50mm 450, 65mm 600.\nWood screw 1 inch 90 rupay per packet.">${esc(state.listing)}</textarea><div class="listing-image-controls">${photoEditor(null,false)}</div><p class="tiny">Only these selected images are sent when you request AI review.</p><div class="entry-actions"><button class="button secondary" data-action="voice-listing" ${state.busy ? 'disabled' : ''}>${icon('mic')}Speak items</button><button class="button primary" data-action="parse" ${state.busy || !state.config.aiConfigured ? 'disabled' : ''}>${icon('spark')}${state.busy ? (state.photoBusy?'Preparing photos…':'Understanding…') : 'Review items'}${icon('arrow')}</button></div><p class="quiet-copy">${icon('shield')}Submitted text and images go to OpenAI. AI categories stay editable; missing prices stay blank.</p></section>
       <aside class="entry-tips"><p class="eyebrow">JUST LIKE AT THE COUNTER</p><h2>One sentence.<br>Many sizes.</h2><p>Include a name, sizes, selling prices and the unit you sell by.</p><div class="example-note">“Godrej tala 50mm 450,<br>65mm 600”<span>1 item · 2 sizes · ready to check</span></div><p class="tiny">A missing price stays blank. We’ll ask you to fill it in.</p></aside></div>
       <div class="manual-entry"><span>${icon('edit')}Prefer to enter it yourself?</span><button class="text-button" data-action="manual" ${state.busy ? 'disabled' : ''}>Add an item manually ${icon('arrow')}</button><small>Works offline, too.</small></div>${!state.config.aiConfigured ? '<div class="warning">No OpenAI key was found on the local server. Add it to the project’s .env.local file; manual entry works now.</div>' : ''}`);
   if(state.busy) document.querySelectorAll('#review-form input,#review-form select,#review-form button').forEach(control=>control.disabled=true);
@@ -179,7 +187,8 @@ function draftCard(d, i) {
     <button type="button" class="text-button" data-categorize="${i}" ${state.busy||!state.config.aiConfigured?'disabled':''}>${icon('spark')}Suggest category & aliases</button>
     <p class="field-heading">SIZES & SELLING PRICES</p>${d.variants.map((v, vi) => `${v.sourceReferenceId?sourceNote(referenceState.catalog,v.sourceReferenceId):''}<div class="variant-editor" data-variant="${vi}"><label>Size / spec<input data-variant-field="spec" value="${esc(v.spec)}" placeholder="50 mm" maxlength="1000"></label><label>Price (₹) <span>*</span><input data-variant-field="price" value="${esc(v.price)}" inputmode="decimal" type="number" min="0" max="100000000" step="0.01" required placeholder="450"></label><label>Per unit<select data-variant-field="unit" aria-label="Selling unit" required>${!v.unit?'<option value="" selected>Choose selling unit</option>':''}${UNITS.map(u => `<option ${u === v.unit ? 'selected' : ''}>${u}</option>`).join('')}</select></label>${d.variants.length > 1 ? `<button type="button" class="icon-button remove-size" data-remove-variant="${vi}" data-index="${i}" aria-label="Remove size ${vi + 1}">${icon('close')}</button>` : ''}</div><div class="discount-editor"><label>Discount (%) <small>Optional · applied once</small><input data-discount="${vi}" data-index="${i}" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="e.g. 25" value="${esc(v.discount||'')}"></label><output data-net="${i}-${vi}">${discountedPaise(v.price,v.discount)===null?'Enter a valid price and discount':`Selling price: ${currency(discountedPaise(v.price,v.discount))} per ${esc(v.unit)}`}</output></div>`).join('')}
     <button type="button" class="text-button add-size" data-add-variant="${i}">${icon('plus')}Add another size</button><label>Other names <small>Separate with commas</small><input data-field="aliases" value="${esc(d.aliases)}" placeholder="tala, ताला, lock" maxlength="2000"></label>
-    <div class="photo-row">${d.photo ? `<img class="draft-photo" src="${esc(d.photo)}" alt="Product photo">` : ''}<label class="button secondary photo-label">${icon('photo')}${d.photo ? 'Change photo' : 'Add a photo'}<input class="sr-only" type="file" accept="image/*" data-photo="${i}"></label>${d.photo?`<button type="button" class="text-button" data-recrop="${i}">Crop photo</button>`:''}</div>
+    ${state.listingImages.length?`<button type="button" class="text-button" data-copy-ai="${i}" ${state.busy||new Set([...productPhotos(d),...state.listingImages]).size>6?'disabled':''}>Use AI images as product photos</button>`:''}
+    ${photoEditor(i,false)}${photoEditor(i,true)}<p class="tiny">Shelf photos stay local and are not sent with category suggestions.</p>
     <details ${d.zone || d.locationNote ? 'open' : ''}><summary>Optional shelf location ${icon('chevron')}</summary><div class="form-row"><label>Zone<input data-field="zone" value="${esc(d.zone)}" placeholder="Aisle A"></label><label>Location note<input data-field="locationNote" value="${esc(d.locationNote)}" placeholder="Second shelf"></label></div></details></section>`;
 }
 function renderHistory() {
@@ -222,6 +231,11 @@ function resetCategory() {state.category=null;state.resultLimit=36;renderResults
 function confirmDialog(title, text, action, label = 'Confirm') {
   openDialog(`<form><div class="dialog-heading"><h2>${esc(title)}</h2><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><p>${esc(text)}</p><div class="dialog-actions"><button type="button" data-action="close-dialog" class="button secondary">Cancel</button><button class="button primary">${esc(label)}</button></div><p class="dialog-error" role="alert"></p></form>`, async () => { await action(); $('#dialog').close(); shell(); });
 }
+function readOnlyAlbum(product,shelf) {
+  const images=shelf?(product.shelfPhotos||[]):productPhotos(product);
+  if(!images.length)return '';
+  return `<section class="photo-album"><h3>${translate(shelf?'Shelf photos':'Product photos')}</h3><div class="photo-album-strip">${images.map((image,i)=>`<button type="button" class="photo-open" data-open-photo="${i}" data-photo-product="${esc(product.id)}" data-photo-shelf="${shelf}"><img src="${esc(image)}" alt="${translate(shelf?'Shelf photos':'Product photos')} ${i+1}"></button>`).join('')}</div></section>`;
+}
 let viewedProductId=null;
 function viewProduct(id) {
   const product=state.data.products.find(p=>p.id===id);if(!product)return;
@@ -229,7 +243,7 @@ function viewProduct(id) {
   const source=linkedReferenceProduct(referenceState.catalog,product);
   const displayName=product.name===`${source?.category.split(' · ')[0]} ${source?.name}`?productText(product.name):product.name;
   const related=relatedProducts(product,state.data.products);
-  openDialog(`<div class="dialog-heading product-details-heading"><div class="product-view-thumb">${illustration(product)}</div><div><p class="eyebrow">Product details</p><h2 data-preserve-text>${esc(displayName)}</h2>${displayName!==product.name?`<small data-preserve-text>${esc(product.name)}</small>`:''}<p data-preserve-text>${esc([product.brand,product.category].filter(Boolean).join(' · '))}</p></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><div class="product-view-body"><p class="view-facts"><span data-preserve-text>${esc([product.zone,product.locationNote].filter(Boolean).join(' · '))}</span><span>${esc(state.data.settings.tax)}</span></p><label class="view-discount-control"><span>Discount (%)</span><input id="view-discount" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="e.g. 10"></label><p class="tiny">Preview only. Saved prices stay unchanged.</p><div id="view-prices"></div>${product.category?`<section class="related-products"><h3>Related products</h3><p class="tiny">Suggested from the same category; matching brands appear first.</p><button class="text-button" data-browse-related="${esc(product.id)}">Browse this category</button>${related.map(other=>`<button class="category-choice" data-view-product="${esc(other.id)}"><span data-preserve-text>${esc(other.name)}</span><small data-preserve-text>${esc(other.brand)}</small></button>`).join('')}</section>`:''}</div><div class="dialog-actions"><button type="button" class="button secondary" data-view-edit-item="${esc(product.id)}">Edit item</button><button type="button" class="button primary" data-action="close-dialog">Close</button></div>`);
+  openDialog(`<div class="dialog-heading product-details-heading"><div class="product-view-thumb">${illustration(product)}</div><div><p class="eyebrow">Product details</p><h2 data-preserve-text>${esc(displayName)}</h2>${displayName!==product.name?`<small data-preserve-text>${esc(product.name)}</small>`:''}<p data-preserve-text>${esc([product.brand,product.category].filter(Boolean).join(' · '))}</p></div><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><div class="product-view-body"><p class="view-facts"><span data-preserve-text>${esc([product.zone,product.locationNote].filter(Boolean).join(' · '))}</span><span>${esc(state.data.settings.tax)}</span></p><label class="view-discount-control"><span>Discount (%)</span><input id="view-discount" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="e.g. 10"></label><p class="tiny">Preview only. Saved prices stay unchanged.</p><div id="view-prices"></div>${readOnlyAlbum(product,false)}${readOnlyAlbum(product,true)}${product.category?`<section class="related-products"><h3>Related products</h3><p class="tiny">Suggested from the same category; matching brands appear first.</p><button class="text-button" data-browse-related="${esc(product.id)}">Browse this category</button>${related.map(other=>`<button class="category-choice" data-view-product="${esc(other.id)}"><span data-preserve-text>${esc(other.name)}</span><small data-preserve-text>${esc(other.brand)}</small></button>`).join('')}</section>`:''}</div><div class="dialog-actions"><button type="button" class="button secondary" data-view-edit-item="${esc(product.id)}">Edit item</button><button type="button" class="button primary" data-action="close-dialog">Close</button></div>`);
   renderViewPrices();
 }
 function renderViewPrices() {
@@ -285,25 +299,25 @@ async function saveDrafts() {
       });
       if (existing && !state.fullEdit) variants.push(...existing.variants.filter(v => !variants.some(n => normalize(n.spec) === normalize(v.spec) && n.unit === v.unit)));
       const aliases = [...new Set([...d.aliases.split(',').map(a => a.trim()).filter(Boolean), ...(!state.fullEdit ? existing?.aliases || [] : [])])];
-      const saved = { id: existing?.id || uid(), name: d.name.trim(), brand: d.brand.trim(), category: d.category.trim(), aliases, photo: d.photo || existing?.photo || null,
+      const saved = { id: existing?.id || uid(), name: d.name.trim(), brand: d.brand.trim(), category: d.category.trim(), aliases, photo: state.fullEdit?d.photo:(d.photo||existing?.photo||null), extraPhotos:(state.fullEdit||productPhotos(d).length)?(d.extraPhotos||[]):(existing?.extraPhotos||[]), shelfPhotos:(state.fullEdit||d.shelfPhotos?.length)?(d.shelfPhotos||[]):(existing?.shelfPhotos||[]),
         zone: d.zone.trim(), locationNote: d.locationNote.trim(), variants, updatedAt: now, demo: existing?.demo || false };
       if (existing) data.products[data.products.findIndex(p => p.id === existing.id)] = saved; else data.products.unshift(saved);
     }
   });
-  state.drafts = []; state.listing = ''; state.listingImage = null; state.query = ''; state.category = null; state.rewrites = null; state.page = 'catalog'; state.fullEdit = false;
+  state.drafts = []; state.listing = ''; state.listingImages = []; state.query = ''; state.category = null; state.rewrites = null; state.page = 'catalog'; state.fullEdit = false;
   referenceState.selected.clear();
   shell(); window.scrollTo(0, 0); toast(`${count} ${count === 1 ? 'item' : 'items'} saved in this browser.`);
 }
 async function parseListing() {
   if (state.busy) return;
-  if (!state.listing.trim() && !state.listingImage) { toast('Type, speak or add an image first.'); $('#listing')?.focus(); return; }
+  if (!state.listing.trim() && !state.listingImages.length) { toast('Type, speak or add an image first.'); $('#listing')?.focus(); return; }
   state.busy = true; renderAdd();
   try {
-    const parsed = await api('/api/parse', { text: state.listing, image: state.listingImage, categories: [...new Set(state.data.products.map(p=>p.category))] });
+    const parsed = await api('/api/parse', { text: state.listing, images: state.listingImages, categories: [...new Set(state.data.products.map(p=>p.category))] });
     state.drafts = parsed.items.map(item => {
-      const d = { ...emptyDraft(), ...item, photo: parsed.items.length===1?state.listingImage:null, aliases: item.aliases.join(', '), variants: item.variants.map(v => ({ spec: v.spec, unit: v.unit, price: v.sell_price == null ? '' : String(v.sell_price) })) };
+      const d = { ...emptyDraft(), ...item, photo: null, aliases: item.aliases.join(', '), variants: item.variants.map(v => ({ spec: v.spec, unit: v.unit, price: v.sell_price == null ? '' : String(v.sell_price) })) };
       const found = duplicate(d, state.data.products);
-      return found ? { ...d, targetId: found.id, zone: found.zone, locationNote: found.locationNote, photo: found.photo, aliases: [...new Set([...found.aliases, ...item.aliases])].join(', ') } : d;
+      return found ? { ...d, targetId: found.id, zone: found.zone, locationNote: found.locationNote, photo: found.photo, extraPhotos:found.extraPhotos||[], shelfPhotos:found.shelfPhotos||[], aliases: [...new Set([...found.aliases, ...item.aliases])].join(', ') } : d;
     });
     state.warnings = parsed.warnings; state.fullEdit = false;
     if (!state.drafts.length) toast(parsed.warnings[0] || 'No items found. Try a name, size and price.');
@@ -336,12 +350,12 @@ function voice(target) {
   recognition.onend = () => document.body.classList.remove('listening');
   recognition.start(); document.body.classList.add('listening'); toast('Listening… speak naturally.');
 }
-async function photo(file, index) {
-  if (!file) return;
-  const image = await cropImage(file);
-  if (!image) return;
-  if (index === null) state.listingImage = image; else state.drafts[index].photo = image;
-  renderAdd();
+async function uploadPhotos(files,index,shelf) {
+  if(state.busy||!files.length)return;
+  if(albumFor(index,shelf).length+files.length>MAX_PHOTOS)throw new Error('Choose up to 6 photos per album.');
+  state.busy=true;state.photoBusy=true;renderAdd();
+  try {for(const file of files) {const image=await cropImage(file);if(!image)break;assignAlbum(index,shelf,[...albumFor(index,shelf),image]);}}
+  finally {state.busy=false;state.photoBusy=false;renderAdd();}
 }
 async function categorize(index) {
   if (state.busy) return;
@@ -350,19 +364,19 @@ async function categorize(index) {
   state.busy=true;renderAdd();
   const button=$(`[data-categorize="${index}"]`);if(button){button.disabled=true;button.textContent='Suggesting category…';}
   try {
-    const suggestion=await api('/api/categorize',{text:JSON.stringify({name:draft.name,brand:draft.brand}),image:draft.photo,categories:[...new Set(state.data.products.map(p=>p.category))]});
+    const suggestion=await api('/api/categorize',{text:JSON.stringify({name:draft.name,brand:draft.brand}),images:productPhotos(draft),categories:[...new Set(state.data.products.map(p=>p.category))]});
     draft.category=suggestion.category;draft.aliases=[...new Set([...draft.aliases.split(',').map(a=>a.trim()),...suggestion.aliases])].filter(Boolean).join(', ');
     toast(suggestion.reason||'Category suggested. Review it before saving.');
   } finally {state.busy=false;renderAdd();}
 }
 function exportBackup() {
-  const content = { format: 'dukaan-web-preview', version: 2, exportedAt: Date.now(), ...state.data };
+  const content = { format: 'dukaan-web-preview', version: 3, exportedAt: Date.now(), ...state.data };
   const url = URL.createObjectURL(new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a'); a.href = url; a.download = `dukaan-web-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast('Preview backup exported. Keep it somewhere safe.');
 }
 async function restore(file) {
-  if (!file) return; if (file.size > 50_000_000) throw new Error('Choose a backup smaller than 50 MB.');
+  if (!file) return; if (file.size > 200_000_000) throw new Error('Choose a backup smaller than 200 MB.');
   const backup = validateBackup(JSON.parse(await file.text()));
   confirmDialog('Replace this browser’s catalog?', `Restore ${backup.products.length} items from this web preview backup. Export your current catalog first if you need to keep it. Your Android catalog and local API key will stay unchanged.`, async () => {
     const next = { products: backup.products, history: backup.history, misses: backup.misses, settings: { tax: ['GST not specified', 'incl. GST', 'excl. GST'].includes(backup.settings?.tax) ? backup.settings.tax : 'GST not specified', language: backup.settings?.language === 'en-IN' ? 'en-IN' : 'hi-IN', uiLanguage:['en','hi','hinglish'].includes(backup.settings?.uiLanguage)?backup.settings.uiLanguage:'en' } };
@@ -393,7 +407,19 @@ document.addEventListener('click', event => {
     if (button.hasAttribute('data-more-items')) {state.resultLimit+=36;renderResults();return;}
     if (button.dataset.layout) { state.layout = button.dataset.layout; renderResults(); return; }
     if (button.hasAttribute('data-categorize')) return categorize(Number(button.dataset.categorize));
-    if (button.hasAttribute('data-recrop')) {const i=Number(button.dataset.recrop);const image=await cropImage(state.drafts[i].photo);if(image){state.drafts[i].photo=image;renderAdd();}return;}
+    if(button.hasAttribute('data-copy-ai')) {if(state.busy)return;const draft=state.drafts[Number(button.dataset.copyAi)];setProductPhotos(draft,[...productPhotos(draft),...state.listingImages]);renderAdd();return;}
+    if(button.hasAttribute('data-album-action')) {
+      if(state.busy)return;
+      const index=button.dataset.albumIndex==='ai'?null:Number(button.dataset.albumIndex),shelf=button.dataset.albumShelf==='true',n=Number(button.dataset.photoIndex),album=[...albumFor(index,shelf)];
+      if(button.dataset.albumAction==='remove')album.splice(n,1);
+      if(button.dataset.albumAction==='cover')album.unshift(...album.splice(n,1));
+      if(button.dataset.albumAction==='crop') {const image=await cropImage(album[n]);if(image)album[n]=image;}
+      assignAlbum(index,shelf,album);renderAdd();return;
+    }
+    if(button.hasAttribute('data-open-photo')) {
+      const product=state.data.products.find(p=>p.id===button.dataset.photoProduct),shelf=button.dataset.photoShelf==='true',images=shelf?product.shelfPhotos:productPhotos(product),n=Number(button.dataset.openPhoto);
+      openDialog(`<div class="dialog-heading"><h2>${translate(shelf?'Shelf photos':'Product photos')} ${n+1}/${images.length}</h2><button type="button" data-dialog-close class="icon-button" aria-label="Close">${icon('close')}</button></div><img class="photo-full" src="${esc(images[n])}" alt="${esc(product.name)}"><button class="button secondary" data-view-product="${esc(product.id)}">Back to product</button>`);return;
+    }
     if (button.hasAttribute('data-view-product')) return viewProduct(button.dataset.viewProduct);
     if (button.hasAttribute('data-view-edit-item')) {$('#dialog').close();return beginEdit(button.dataset.viewEditItem);}
     if (button.hasAttribute('data-browse-related')) {const product=state.data.products.find(p=>p.id===button.dataset.browseRelated);state.category=product.category;state.query='';state.rewrites=null;state.resultLimit=36;$('#dialog').close();renderCatalog();return;}
@@ -404,7 +430,7 @@ document.addEventListener('click', event => {
     if (button.hasAttribute('data-add-variant')) { state.drafts[Number(button.dataset.addVariant)].variants.push({ spec: '', unit: 'piece', price: '' }); return renderAdd(); }
     if (button.hasAttribute('data-remove-variant')) { state.drafts[Number(button.dataset.index)].variants.splice(Number(button.dataset.removeVariant), 1); return renderAdd(); }
     if (button.hasAttribute('data-separate')) { state.drafts[Number(button.dataset.separate)].targetId = null; return renderAdd(); }
-    if (button.hasAttribute('data-merge')) { const d = state.drafts[Number(button.dataset.merge)], p = state.data.products.find(p => p.id === button.dataset.target); Object.assign(d, { targetId: p.id, photo: p.photo, zone: p.zone, locationNote: p.locationNote }); return renderAdd(); }
+    if (button.hasAttribute('data-merge')) { const d = state.drafts[Number(button.dataset.merge)], p = state.data.products.find(p => p.id === button.dataset.target); Object.assign(d, { targetId: p.id, photo: p.photo, extraPhotos:p.extraPhotos||[], shelfPhotos:p.shelfPhotos||[], zone: p.zone, locationNote: p.locationNote }); return renderAdd(); }
     if (button.dataset.learn) {
       const miss = state.data.misses.find(m => m.id === button.dataset.learn); const target = $(`[data-miss-select="${miss.id}"]`).value;
       if (!target) return toast('Choose the right item first.');
@@ -415,8 +441,6 @@ document.addEventListener('click', event => {
       case 'new': state.page = 'add'; shell(); window.scrollTo(0, 0); break;
       case 'manual': state.drafts = [emptyDraft()]; state.fullEdit = false; state.warnings = []; renderAdd(); break;
       case 'discard': if(state.busy)return toast('Wait for the current request to finish.'); state.drafts = []; state.warnings = []; renderAdd(); break;
-      case 'recrop-listing': {const image=await cropImage(state.listingImage);if(image){state.listingImage=image;renderAdd();}break;}
-      case 'remove-listing-image': state.listingImage=null;renderAdd();break;
       case 'parse': await parseListing(); break;
       case 'smart': await smartSearch(); break;
       case 'voice-search': voice('search'); break;
@@ -473,8 +497,10 @@ document.addEventListener('change', event => {
     const open=[...document.querySelectorAll('.reference-group')].map(e=>e.open);renderReference();document.querySelectorAll('.reference-group').forEach((e,i)=>e.open=open[i]);return;
   }
   if(input.id==='reference-family'||input.id==='reference-scope') {referenceState[input.id==='reference-family'?'category':'scope']=input.value;referenceState.limit=20;renderReference();return;}
-  if(input.id==='listing-image') {photo(input.files[0],null).catch(error=>toast(error.message));input.value='';}
-  if (input.hasAttribute('data-photo')) {photo(input.files[0], Number(input.dataset.photo)).catch(error => toast(error.message));input.value='';}
+  if(input.hasAttribute('data-album-upload')) {
+    const index=input.dataset.albumUpload==='ai'?null:Number(input.dataset.albumUpload);
+    uploadPhotos([...input.files],index,input.dataset.albumShelf==='true').catch(error=>toast(error.message));input.value='';return;
+  }
   if (input.id === 'restore-backup') restore(input.files[0]).catch(error => toast(error.message));
   if (input.id === 'tax' || input.id === 'voice-language') changeData(data => { data.settings[input.id === 'tax' ? 'tax' : 'language'] = input.value; }).then(() => toast('Preference saved.')).catch(error => toast(error.message));
 });

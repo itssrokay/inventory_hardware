@@ -1,3 +1,4 @@
+import {validatePhotoAlbums} from './photos.js';
 export const UNITS = ['piece', 'kg', 'ft', 'metre', 'box', 'dozen', 'packet'];
 export const currency = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, minimumFractionDigits: 0 }).format(value / 100);
 export const decimal = value => String(value / 100);
@@ -90,7 +91,7 @@ export function validateDraft(draft) {
   return null;
 }
 export function validateBackup(data) {
-  if (data?.format !== 'dukaan-web-preview' || ![1,2].includes(data.version) || !Array.isArray(data.products) || !Array.isArray(data.history) || !Array.isArray(data.misses)) throw new Error('Choose a valid Dukaan web preview backup. Android ZIP backups use a separate format.');
+  if (data?.format !== 'dukaan-web-preview' || ![1,2,3].includes(data.version) || !Array.isArray(data.products) || !Array.isArray(data.history) || !Array.isArray(data.misses)) throw new Error('Choose a valid Dukaan web preview backup. Android ZIP backups use a separate format.');
   if (data.products.length > 5000) throw new Error('This backup is too large for the preview.');
   const ids = new Set();
   const sourceIds = new Set();
@@ -99,6 +100,7 @@ export function validateBackup(data) {
       !['brand', 'category', 'zone', 'locationNote'].every(k => typeof p[k] === 'string') ||
       !Array.isArray(p.aliases) || !p.aliases.every(a => typeof a === 'string') || !Number.isFinite(p.updatedAt) ||
       (p.photo && !/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(p.photo))) throw new Error('The backup contains an invalid item.');
+    if(!validatePhotoAlbums(p))throw new Error('The backup contains invalid photo albums.');
     ids.add(p.id);
     if (!Array.isArray(p.variants) || !p.variants.length || p.variants.some(v => typeof v.id !== 'string' || typeof v.spec !== 'string' || !UNITS.includes(v.unit) || !Number.isSafeInteger(v.pricePaise) || v.pricePaise < 0 || v.pricePaise > 10_000_000_000 || !Number.isFinite(v.updatedAt))) throw new Error('The backup contains an invalid price or size.');
   }
